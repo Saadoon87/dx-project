@@ -381,6 +381,10 @@ export default class UlsCalculator extends LightningElement {
       isInflationAdjustedUavStale:
         this.goalData.inflationAdjustedUavResult !== null
     };
+    // Ask lightning-input to show inline validation feedback immediately.
+    if (event.target && typeof event.target.reportValidity === "function") {
+      event.target.reportValidity();
+    }
 
     // Clear old errors when the user updates input.
     this.clearError();
@@ -395,6 +399,11 @@ export default class UlsCalculator extends LightningElement {
       isSuggestedPremiumStale: this.goalData.suggestedPremiumResult !== null
     };
 
+    // Ask lightning-input to show inline validation feedback immediately.
+    if (event.target && typeof event.target.reportValidity === "function") {
+      event.target.reportValidity();
+    }
+
     // Clear old errors when the user updates input.
     this.clearError();
   }
@@ -407,6 +416,10 @@ export default class UlsCalculator extends LightningElement {
       requestedMonthlyPremium: event.target.value,
       isFinalUavStale: this.goalData.finalUavResult !== null
     };
+    // Ask lightning-input to show inline validation feedback immediately.
+    if (event.target && typeof event.target.reportValidity === "function") {
+      event.target.reportValidity();
+    }
 
     // Clear old errors when the user updates input.
     this.clearError();
