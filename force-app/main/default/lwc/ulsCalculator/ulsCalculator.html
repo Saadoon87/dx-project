@@ -1,0 +1,221 @@
+<template>
+    <!--
+        Main card container for the ULS Calculator.
+        This keeps the component visually contained inside Lightning pages/tabs.
+    -->
+    <section class="uls-shell" aria-label="ULS Calculator">
+
+        <!--
+            Header area.
+            This gives users clear context about what the screen is for.
+        -->
+        <header class="uls-header">
+            <div>
+                <p class="uls-eyebrow">AXA Sales</p>
+                <h1 class="uls-title">ULS Calculator</h1>
+                <p class="uls-subtitle">
+                    Guided workflow for policy retrieval, goals, alterations, review, and package generation.
+                </p>
+            </div>
+
+            <!--
+                Status badge.
+                In later steps, this can show Draft, Ready, Stale Projection, or Backend Unavailable.
+            -->
+            <div class="uls-status-badge" aria-label="Current workflow status">
+                {currentStepLabel}
+            </div>
+        </header>
+
+        <!--
+            Loading panel.
+            It appears only when isLoading is true.
+            Later, Apex calls will turn this on/off.
+        -->
+        <template if:true={isLoading}>
+            <div class="uls-loading" role="status" aria-live="polite">
+                <lightning-spinner
+                    alternative-text="Loading ULS Calculator data"
+                    size="small">
+                </lightning-spinner>
+                <span class="uls-loading-text">{loadingMessage}</span>
+            </div>
+        </template>
+
+        <!--
+            Safe error panel.
+            The LWC should show user-safe messages only.
+            Backend/internal details should stay in logs.
+        -->
+        <template if:true={hasError}>
+            <div class="uls-error-panel" role="alert">
+                <div class="uls-error-title">We could not complete this action</div>
+                <div class="uls-error-message">{errorState.userMessage}</div>
+
+                <template if:true={errorState.errorCode}>
+                    <div class="uls-error-meta">
+                        Error Code:
+                        <strong>{errorState.errorCode}</strong>
+                    </div>
+                </template>
+
+                <template if:true={errorState.correlationId}>
+                    <div class="uls-error-meta">
+                        Correlation ID:
+                        <strong>{errorState.correlationId}</strong>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!--
+            Stepper navigation.
+            This is visual navigation for the five-step guided flow.
+            The buttons are disabled for direct jumping in this skeleton version.
+        -->
+        <nav class="uls-stepper" aria-label="ULS Calculator steps">
+            <template for:each={steps} for:item="step">
+                <button
+                    key={step.value}
+                    class={step.cssClass}
+                    data-step={step.value}
+                    disabled
+                    aria-current={step.ariaCurrent}>
+                    <span class="uls-step-number">{step.value}</span>
+                    <span class="uls-step-label">{step.label}</span>
+                </button>
+            </template>
+        </nav>
+
+        <!--
+            Main step content.
+            Each section is intentionally simple in this skeleton.
+            We will fill each step gradually.
+        -->
+        <main class="uls-content">
+
+            <!-- Step 1 placeholder -->
+            <template if:true={isStep1}>
+                <section class="uls-step-card" aria-labelledby="step-one-heading">
+                    <h2 id="step-one-heading">Step 1: Policy Retrieval</h2>
+                    <p>
+                        This step will allow the advisor to enter a policy number and retrieve policy/customer data.
+                    </p>
+
+                    <div class="uls-placeholder-box">
+                        <p class="uls-placeholder-title">Coming next</p>
+                        <ul>
+                            <li>Policy number input</li>
+                            <li>Retrieve button</li>
+                            <li>LWC validation</li>
+                            <li>Apex call to retrieve policy data</li>
+                            <li>Safe error display with correlation ID</li>
+                        </ul>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Step 2 placeholder -->
+            <template if:true={isStep2}>
+                <section class="uls-step-card" aria-labelledby="step-two-heading">
+                    <h2 id="step-two-heading">Step 2: Define Goal</h2>
+                    <p>
+                        This step will show retrieved policy details and allow goal-based calculations.
+                    </p>
+
+                    <div class="uls-placeholder-box">
+                        <p class="uls-placeholder-title">Planned actions</p>
+                        <ul>
+                            <li>Calculate Inflation-Adjusted UAV</li>
+                            <li>Calculate Suggested Premium</li>
+                            <li>Recalculate Final UAV</li>
+                            <li>Mark results stale when advisor changes inputs</li>
+                        </ul>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Step 3 placeholder -->
+            <template if:true={isStep3}>
+                <section class="uls-step-card" aria-labelledby="step-three-heading">
+                    <h2 id="step-three-heading">Step 3: Apply Alterations</h2>
+                    <p>
+                        This step will allow the advisor to select policy alterations.
+                    </p>
+
+                    <div class="uls-placeholder-box">
+                        <p class="uls-placeholder-title">Planned alteration sections</p>
+                        <ul>
+                            <li>Regular Premium Change</li>
+                            <li>Fund Switching</li>
+                            <li>Additional Single Premium, ASP</li>
+                            <li>Future Premium Redirection</li>
+                            <li>Increase ULS Term</li>
+                        </ul>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Step 4 placeholder -->
+            <template if:true={isStep4}>
+                <section class="uls-step-card" aria-labelledby="step-four-heading">
+                    <h2 id="step-four-heading">Step 4: Consolidated Review</h2>
+                    <p>
+                        This step will show the generated projection and year-by-year review.
+                    </p>
+
+                    <div class="uls-placeholder-box">
+                        <p class="uls-placeholder-title">Planned review areas</p>
+                        <ul>
+                            <li>Portfolio data audit board</li>
+                            <li>Financial target review</li>
+                            <li>Applied alterations summary</li>
+                            <li>Detailed yearly projection table</li>
+                        </ul>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Step 5 placeholder -->
+            <template if:true={isStep5}>
+                <section class="uls-step-card" aria-labelledby="step-five-heading">
+                    <h2 id="step-five-heading">Step 5: Generated Package</h2>
+                    <p>
+                        This step will later support projection PDF and final package generation.
+                    </p>
+
+                    <div class="uls-placeholder-box">
+                        <p class="uls-placeholder-title">Document generation is controlled by configuration</p>
+                        <ul>
+                            <li>Projection PDF generation</li>
+                            <li>Alteration request forms</li>
+                            <li>Optional attachments</li>
+                            <li>Final merged package</li>
+                        </ul>
+                    </div>
+                </section>
+            </template>
+        </main>
+
+        <!--
+            Footer navigation.
+            In this skeleton, Next/Back are enabled so we can test the flow visually.
+            Real validation will be added before allowing users to move between steps.
+        -->
+        <footer class="uls-footer">
+            <lightning-button
+                label="Back"
+                variant="neutral"
+                onclick={handleBack}
+                disabled={isBackDisabled}>
+            </lightning-button>
+
+            <lightning-button
+                label={nextButtonLabel}
+                variant="brand"
+                onclick={handleNext}
+                disabled={isNextDisabled}>
+            </lightning-button>
+        </footer>
+    </section>
+</template>

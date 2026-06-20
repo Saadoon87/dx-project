@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!--
+        Grants access to the LWC-facing Apex controller.
+        The user does not need direct access to service/helper classes.
+    -->
+    <classAccesses>
+        <apexClass>UlsCalculatorController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+
+    <!--
+        Description shown in Setup.
+    -->
+    <description>Grants AXA sales users access to the ULS Calculator tab and Apex controller.</description>
+
+    <!--
+        This permission set does not require session activation.
+    -->
+    <hasActivationRequired>false</hasActivationRequired>
+
+    <!--
+        Label shown in Setup.
+    -->
+    <label>ULS Calculator User</label>
+
+    <!--
+        Makes the ULS Calculator tab visible to users with this permission set.
+    -->
+    <tabSettings>
+        <tab>ULS_Calculator</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+</PermissionSet>

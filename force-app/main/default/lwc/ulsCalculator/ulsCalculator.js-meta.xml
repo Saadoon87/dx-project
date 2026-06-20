@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!--
+        API version.
+        If your generated project uses 66.0 or 67.0, you may keep that version instead.
+    -->
+    <apiVersion>66.0</apiVersion>
+
+    <!--
+        Exposes the component in Lightning App Builder and tab setup.
+    -->
+    <isExposed>true</isExposed>
+
+    <!--
+        Component label shown in Lightning App Builder.
+    -->
+    <masterLabel>ULS Calculator</masterLabel>
+
+    <!--
+        AppPage/HomePage are useful for testing.
+        lightning__Tab allows this LWC to be used as a real Lightning Component tab.
+    -->
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__HomePage</target>
+        <target>lightning__Tab</target>
+    </targets>
+</LightningComponentBundle>
