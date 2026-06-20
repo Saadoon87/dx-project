@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+
+    <!-- Description shown in Salesforce Setup. -->
+    <description>Allows IT Support users to view ULS Calculator operational logs for troubleshooting.</description>
+
+    <!-- This permission set does not require session-based activation. -->
+    <hasActivationRequired>false</hasActivationRequired>
+
+    <!-- Label shown to admins in Salesforce Setup. -->
+    <label>ULS Calculator Support</label>
+
+    <!-- Gives support users read-only access to all ULS Calculator Log records. -->
+    <objectPermissions>
+
+        <!-- Support users should not manually create log records. Apex creates logs. -->
+        <allowCreate>false</allowCreate>
+
+        <!-- Support users should not delete logs. Logs should remain trustworthy. -->
+        <allowDelete>false</allowDelete>
+
+        <!-- Support users should not edit logs. Logs should remain audit-like. -->
+        <allowEdit>false</allowEdit>
+
+        <!-- Support users can read log records. -->
+        <allowRead>true</allowRead>
+
+        <!-- Support users should not have Modify All on logs. -->
+        <modifyAllRecords>false</modifyAllRecords>
+
+        <!-- Custom log object API name. -->
+        <object>Uls_Calculator_Log__c</object>
+
+        <!-- Support users can view all log records regardless of ownership. -->
+        <viewAllRecords>true</viewAllRecords>
+
+    </objectPermissions>
+
+    <!-- Allows support users to read Correlation ID. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Correlation_Id__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read Operation Name. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Operation_Name__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read call direction. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Direction__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read logical endpoint/path. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Endpoint__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read HTTP method. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Http_Method__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read backend HTTP status code. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Http_Status_Code__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read duration in milliseconds. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Duration_Ms__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read success/failure flag. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Success__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read safe error code. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Error_Code__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read error category. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Error_Category__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read support-safe log message. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Sanitized_Message__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read the full policy number. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Policy_Number__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read the old masked policy field if older logs contain it. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Policy_Number_Masked__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to see which Salesforce user triggered the operation. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Salesforce_User__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read request timestamp. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Request_Timestamp__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read response timestamp. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Response_Timestamp__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read environment value. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Environment__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Allows support users to read detailed support log details. -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Uls_Calculator_Log__c.Detailed_Log__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Makes the custom object tab visible to users with this permission set. -->
+    <tabSettings>
+        <tab>Uls_Calculator_Log__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+
+</PermissionSet>
