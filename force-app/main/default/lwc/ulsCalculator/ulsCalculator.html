@@ -128,11 +128,11 @@
                 <div class="uls-section-heading">
                     <h2>Step 2: Define Goal</h2>
                     <p>
-                        Review the retrieved policy details and define the target UAV and premium goals.
+                        Review the retrieved policy details, load the inflation rate, and calculate the target values.
                     </p>
                 </div>
 
-                <!-- Basic retrieved policy summary. This is intentionally simple for Step 15. -->
+                <!-- Basic retrieved policy summary -->
                 <template if:true={hasPolicyData}>
                     <div class="uls-summary-card">
                         <h3>Retrieved Policy Summary</h3>
@@ -171,9 +171,184 @@
                     </div>
                 </template>
 
-                <!-- Placeholder for later Step 16 work -->
-                <div class="uls-placeholder">
-                    Goal calculation actions will be added in the next step.
+                <!-- Inflation rate card -->
+                <div class="uls-action-card">
+                    <div>
+                        <h3>Inflation Rate</h3>
+                        <p>
+                            Inflation percentage is fetched from the backend and displayed as read-only information.
+                        </p>
+                    </div>
+
+                    <div class="uls-action-row">
+                        <div class="uls-result-pill">
+                            Current Inflation Rate: <strong>{displayInflationRate}</strong>
+                        </div>
+
+                        <lightning-button
+                            label="Load Inflation Rate"
+                            variant="neutral"
+                            onclick={handleLoadInflationRate}
+                            disabled={isLoading}>
+                        </lightning-button>
+                    </div>
+                </div>
+
+                <!-- Goal input form -->
+                <div class="uls-goal-grid">
+
+                    <!-- Initial Target UAV input -->
+                    <lightning-input
+                        type="number"
+                        name="initialTargetUav"
+                        label="Initial Target UAV"
+                        value={goalData.initialTargetUav}
+                        placeholder="Enter initial target UAV"
+                        onchange={handleInitialTargetUavChange}
+                        disabled={isLoading}>
+                    </lightning-input>
+
+                    <!-- Requested Final UAV input -->
+                    <lightning-input
+                        type="number"
+                        name="requestedFinalUav"
+                        label="Requested Final UAV"
+                        value={goalData.requestedFinalUav}
+                        placeholder="Enter requested final UAV"
+                        onchange={handleRequestedFinalUavChange}
+                        disabled={isLoading}>
+                    </lightning-input>
+
+                    <!-- Requested Monthly Premium input -->
+                    <lightning-input
+                        type="number"
+                        name="requestedMonthlyPremium"
+                        label="Requested Monthly Premium"
+                        value={goalData.requestedMonthlyPremium}
+                        placeholder="Enter requested monthly premium"
+                        onchange={handleRequestedMonthlyPremiumChange}
+                        disabled={isLoading}>
+                    </lightning-input>
+
+                </div>
+
+                <!-- Calculation action buttons -->
+                <div class="uls-calculation-actions">
+
+                    <lightning-button
+                        label="Calculate Inflation-Adjusted UAV"
+                        variant="brand"
+                        onclick={handleCalculateInflationAdjustedUav}
+                        disabled={isCalculateInflationAdjustedDisabled}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="Calculate Suggested Premium"
+                        variant="brand"
+                        onclick={handleCalculateSuggestedPremium}
+                        disabled={isCalculateSuggestedPremiumDisabled}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="Recalculate Final UAV"
+                        variant="brand"
+                        onclick={handleCalculateFinalUav}
+                        disabled={isCalculateFinalUavDisabled}>
+                    </lightning-button>
+
+                </div>
+
+                <!-- Stale result warning -->
+                <template if:true={hasStaleGoalResults}>
+                    <div class="uls-warning-panel">
+                        One or more inputs changed after calculation. Please recalculate before continuing.
+                    </div>
+                </template>
+
+                <!-- Results area -->
+                <div class="uls-results-grid">
+
+                    <!-- Inflation-adjusted UAV result -->
+                    <div class="uls-result-card">
+                        <h3>Inflation-Adjusted UAV</h3>
+
+                        <dl>
+                            <div>
+                                <dt>Initial UAV</dt>
+                                <dd>{displayInitialUavResult}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Inflation Rate</dt>
+                                <dd>{displayInflationAdjustedRate}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Remaining Years</dt>
+                                <dd>{displayRemainingYears}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Inflation-Adjusted Amount</dt>
+                                <dd>{displayInflationAdjustedAmount}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Suggested premium result -->
+                    <div class="uls-result-card">
+                        <h3>Suggested Premium</h3>
+
+                        <dl>
+                            <div>
+                                <dt>Target Final UAV</dt>
+                                <dd>{displaySuggestedTargetFinalUav}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Suggested Premium</dt>
+                                <dd>{displaySuggestedPremium}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Current Premium</dt>
+                                <dd>{displaySuggestedCurrentPremium}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Difference</dt>
+                                <dd>{displaySuggestedDifference}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Final UAV result -->
+                    <div class="uls-result-card">
+                        <h3>Projected Final UAV</h3>
+
+                        <dl>
+                            <div>
+                                <dt>Requested Premium</dt>
+                                <dd>{displayRequestedPremiumResult}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Current Premium</dt>
+                                <dd>{displayFinalUavCurrentPremium}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Difference</dt>
+                                <dd>{displayFinalUavDifference}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Projected Final UAV</dt>
+                                <dd>{displayProjectedFinalUav}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
                 </div>
 
             </template>
@@ -240,7 +415,7 @@
                             label="Next"
                             variant="brand"
                             onclick={handleNext}
-                            disabled={isLoading}>
+                            disabled={isNextDisabled}>
                         </lightning-button>
                     </template>
                 </template>
