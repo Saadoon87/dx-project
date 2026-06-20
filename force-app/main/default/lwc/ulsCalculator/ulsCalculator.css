@@ -369,3 +369,26 @@
         flex-direction: column;
     }
 }
+
+/* Temporary sandbox preview panel on Step 1 */
+.uls-preview-panel {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+/* Temporary preview title */
+.uls-preview-title {
+    color: #334155;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+}
+
+/* Temporary preview explanation text */
+.uls-preview-text {
+    color: #475569;
+    margin: 0 0 0.75rem 0;
+    font-size: 0.85rem;
+}

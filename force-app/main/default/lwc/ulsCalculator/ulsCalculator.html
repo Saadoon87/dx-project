@@ -33,9 +33,7 @@
         <!-- Shared loading message area -->
         <template if:true={isLoading}>
             <section class="uls-loading">
-                <lightning-spinner
-                    alternative-text="Loading"
-                    size="small">
+                <lightning-spinner alternative-text="Loading" size="small">
                 </lightning-spinner>
 
                 <span class="uls-loading-text">{loadingMessage}</span>
@@ -67,10 +65,7 @@
                 </template>
 
                 <!-- Button to clear the current error message from the screen -->
-                <lightning-button
-                    label="Dismiss"
-                    variant="neutral"
-                    onclick={clearError}>
+                <lightning-button label="Dismiss" variant="neutral" onclick={clearError}>
                 </lightning-button>
 
             </section>
@@ -93,22 +88,14 @@
                 <div class="uls-form-grid">
 
                     <!-- Policy number input controlled by JavaScript state -->
-                    <lightning-input
-                        name="policyNumber"
-                        label="Policy Number"
-                        value={policyNumber}
-                        placeholder="Enter policy number"
-                        onchange={handlePolicyNumberChange}
-                        disabled={isLoading}
+                    <lightning-input name="policyNumber" label="Policy Number" value={policyNumber}
+                        placeholder="Enter policy number" onchange={handlePolicyNumberChange} disabled={isLoading}
                         required>
                     </lightning-input>
 
                     <!-- Retrieve button. Disabled while loading to prevent duplicate submit. -->
                     <div class="uls-button-row">
-                        <lightning-button
-                            label="Retrieve Policy"
-                            variant="brand"
-                            onclick={handleRetrievePolicy}
+                        <lightning-button label="Retrieve Policy" variant="brand" onclick={handleRetrievePolicy}
                             disabled={isRetrieveDisabled}>
                         </lightning-button>
                     </div>
@@ -119,6 +106,28 @@
                 <p class="uls-help-text">
                     The policy number is mandatory. The policy must exist and must be eligible for ULS calculation.
                 </p>
+                <!-- Temporary sandbox-only preview panel.
+     This is used only while backend authentication is not ready.
+     It lets us visually inspect Step 2 without pretending to have real policy data. -->
+                <div class="uls-preview-panel">
+
+                    <!-- Preview warning text -->
+                    <p class="uls-preview-title">
+                        Temporary Sandbox Preview
+                    </p>
+
+                    <!-- Clear explanation so nobody mistakes this for real production behavior -->
+                    <p class="uls-preview-text">
+                        Use this button only to preview the Step 2 UI while backend authentication is pending.
+                        This loads fake sample data and does not call the backend.
+                    </p>
+
+                    <!-- Temporary button that moves to Step 2 using fake preview data -->
+                    <lightning-button label="Preview Step 2 UI" variant="neutral" onclick={handlePreviewStep2}
+                        disabled={isLoading}>
+                    </lightning-button>
+
+                </div>
 
             </template>
 
@@ -131,6 +140,14 @@
                         Review the retrieved policy details, load the inflation rate, and calculate the target values.
                     </p>
                 </div>
+
+                <!-- Temporary warning shown only when Step 2 was opened using fake preview data -->
+                <template if:true={isPreviewMode}>
+                    <div class="uls-warning-panel">
+                        Sandbox preview mode is active. The policy data below is fake sample data and must not be used
+                        for real customer work.
+                    </div>
+                </template>
 
                 <!-- Basic retrieved policy summary -->
                 <template if:true={hasPolicyData}>
@@ -185,11 +202,8 @@
                             Current Inflation Rate: <strong>{displayInflationRate}</strong>
                         </div>
 
-                        <lightning-button
-                            label="Load Inflation Rate"
-                            variant="neutral"
-                            onclick={handleLoadInflationRate}
-                            disabled={isLoading}>
+                        <lightning-button label="Load Inflation Rate" variant="neutral"
+                            onclick={handleLoadInflationRate} disabled={isLoading}>
                         </lightning-button>
                     </div>
                 </div>
@@ -198,36 +212,27 @@
                 <div class="uls-goal-grid">
 
                     <!-- Initial Target UAV input -->
-                    <lightning-input
-                        type="number"
-                        name="initialTargetUav"
-                        label="Initial Target UAV"
-                        value={goalData.initialTargetUav}
-                        placeholder="Enter initial target UAV"
-                        onchange={handleInitialTargetUavChange}
+                    <lightning-input type="number" name="initialTargetUav" label="Initial Target UAV"
+                        value={goalData.initialTargetUav} placeholder="Enter initial target UAV" min="0" step="0.01"
+                        message-when-range-underflow="Amount cannot be less than zero."
+                        message-when-bad-input="Please enter a valid number." onchange={handleInitialTargetUavChange}
                         disabled={isLoading}>
                     </lightning-input>
 
                     <!-- Requested Final UAV input -->
-                    <lightning-input
-                        type="number"
-                        name="requestedFinalUav"
-                        label="Requested Final UAV"
-                        value={goalData.requestedFinalUav}
-                        placeholder="Enter requested final UAV"
-                        onchange={handleRequestedFinalUavChange}
+                    <lightning-input type="number" name="requestedFinalUav" label="Requested Final UAV"
+                        value={goalData.requestedFinalUav} placeholder="Enter requested final UAV" min="0" step="0.01"
+                        message-when-range-underflow="Amount cannot be less than zero."
+                        message-when-bad-input="Please enter a valid number." onchange={handleRequestedFinalUavChange}
                         disabled={isLoading}>
                     </lightning-input>
 
                     <!-- Requested Monthly Premium input -->
-                    <lightning-input
-                        type="number"
-                        name="requestedMonthlyPremium"
-                        label="Requested Monthly Premium"
-                        value={goalData.requestedMonthlyPremium}
-                        placeholder="Enter requested monthly premium"
-                        onchange={handleRequestedMonthlyPremiumChange}
-                        disabled={isLoading}>
+                    <lightning-input type="number" name="requestedMonthlyPremium" label="Requested Monthly Premium"
+                        value={goalData.requestedMonthlyPremium} placeholder="Enter requested monthly premium" min="0"
+                        step="0.01" message-when-range-underflow="Amount cannot be less than zero."
+                        message-when-bad-input="Please enter a valid number."
+                        onchange={handleRequestedMonthlyPremiumChange} disabled={isLoading}>
                     </lightning-input>
 
                 </div>
@@ -235,24 +240,15 @@
                 <!-- Calculation action buttons -->
                 <div class="uls-calculation-actions">
 
-                    <lightning-button
-                        label="Calculate Inflation-Adjusted UAV"
-                        variant="brand"
-                        onclick={handleCalculateInflationAdjustedUav}
-                        disabled={isCalculateInflationAdjustedDisabled}>
+                    <lightning-button label="Calculate Inflation-Adjusted UAV" variant="brand"
+                        onclick={handleCalculateInflationAdjustedUav} disabled={isCalculateInflationAdjustedDisabled}>
                     </lightning-button>
 
-                    <lightning-button
-                        label="Calculate Suggested Premium"
-                        variant="brand"
-                        onclick={handleCalculateSuggestedPremium}
-                        disabled={isCalculateSuggestedPremiumDisabled}>
+                    <lightning-button label="Calculate Suggested Premium" variant="brand"
+                        onclick={handleCalculateSuggestedPremium} disabled={isCalculateSuggestedPremiumDisabled}>
                     </lightning-button>
 
-                    <lightning-button
-                        label="Recalculate Final UAV"
-                        variant="brand"
-                        onclick={handleCalculateFinalUav}
+                    <lightning-button label="Recalculate Final UAV" variant="brand" onclick={handleCalculateFinalUav}
                         disabled={isCalculateFinalUavDisabled}>
                     </lightning-button>
 
@@ -400,22 +396,14 @@
 
                 <!-- Back button is hidden on Step 1 -->
                 <template if:false={isStep1}>
-                    <lightning-button
-                        label="Back"
-                        variant="neutral"
-                        onclick={handleBack}
-                        disabled={isLoading}>
+                    <lightning-button label="Back" variant="neutral" onclick={handleBack} disabled={isLoading}>
                     </lightning-button>
                 </template>
 
                 <!-- Manual Next button is hidden on Step 1 because Retrieve controls moving to Step 2 -->
                 <template if:false={isStep1}>
                     <template if:false={isStep5}>
-                        <lightning-button
-                            label="Next"
-                            variant="brand"
-                            onclick={handleNext}
-                            disabled={isNextDisabled}>
+                        <lightning-button label="Next" variant="brand" onclick={handleNext} disabled={isNextDisabled}>
                         </lightning-button>
                     </template>
                 </template>

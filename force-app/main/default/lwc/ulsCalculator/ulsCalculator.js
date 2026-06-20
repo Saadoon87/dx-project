@@ -28,6 +28,10 @@ export default class UlsCalculator extends LightningElement {
     // Stores policy data returned by Apex/backend after successful retrieval.
     policyData = null;
 
+    // Tracks whether the user is viewing temporary fake preview data.
+    // This must remain false for real backend-driven flows.
+    isPreviewMode = false;
+
     // Stores the current inflation rate returned by the backend.
     inflationRateData = null;
 
@@ -245,6 +249,9 @@ export default class UlsCalculator extends LightningElement {
         // If the user changes the policy number, old policy data should not remain trusted.
         this.policyData = null;
 
+        // If the user starts typing a real policy number, leave preview mode.
+        this.isPreviewMode = false;
+
         // Reset Step 2 data because it belongs to the previously retrieved policy.
         this.resetGoalData();
     }
@@ -286,9 +293,18 @@ export default class UlsCalculator extends LightningElement {
 
             // If Apex returned success, store the policy data and move to Step 2.
             if (this.handleApiSuccess(response)) {
+                // Real backend success means this is no longer preview mode.
+                this.isPreviewMode = false;
+
+                // Store real policy data returned by Apex/backend.
                 this.policyData = response.data;
+
+                // Move the user to Step 2.
                 this.currentStep = 2;
+
+                // Reset Step 2 goal/calculation state for the retrieved policy.
                 this.resetGoalData();
+
                 return;
             }
 
@@ -305,8 +321,47 @@ export default class UlsCalculator extends LightningElement {
         }
     }
 
+    // TEMPORARY SANDBOX-ONLY METHOD.
+    // This method lets us preview Step 2 while backend authentication is not ready.
+    // It must be removed or disabled before production release.
+    handlePreviewStep2() {
+        // Clear any previous backend or validation error.
+        this.clearError();
+
+        // Do not allow preview action while another action is loading.
+        if (this.isLoading) {
+            return;
+        }
+
+        // Mark the component as being in temporary preview mode.
+        this.isPreviewMode = true;
+
+        // Use an obviously fake policy number so nobody confuses this with real data.
+        this.policyNumber = 'POL-PREVIEW-001';
+
+        // Load clearly fake sample policy data for UI preview only.
+        // These values are not business rules and must not be used for real customer work.
+        this.policyData = {
+            policyNumber: 'POL-PREVIEW-001',
+            customerName: 'Sample Customer - Preview Only',
+            maturityDate: '2036-12-31',
+            currentPremium: 1000,
+            currentUav: 250000,
+            missedPremiums: 0
+        };
+
+        // Reset Step 2 calculation fields so preview starts clean.
+        this.resetGoalData();
+
+        // Move directly to Step 2 so we can visually test the layout.
+        this.currentStep = 2;
+    }
+
     // Handles typing in the Initial Target UAV field.
     handleInitialTargetUavChange(event) {
+        // Ask lightning-input to show inline validation if the value is invalid.
+        event.target.reportValidity();
+
         // Store the entered value.
         this.goalData = {
             ...this.goalData,
@@ -314,12 +369,15 @@ export default class UlsCalculator extends LightningElement {
             isInflationAdjustedUavStale: this.goalData.inflationAdjustedUavResult !== null
         };
 
-        // Clear old errors when the user updates input.
+        // Clear old page-level errors when the user updates input.
         this.clearError();
     }
 
     // Handles typing in the Requested Final UAV field.
     handleRequestedFinalUavChange(event) {
+        // Ask lightning-input to show inline validation if the value is invalid.
+        event.target.reportValidity();
+
         // Store the entered value.
         this.goalData = {
             ...this.goalData,
@@ -327,12 +385,15 @@ export default class UlsCalculator extends LightningElement {
             isSuggestedPremiumStale: this.goalData.suggestedPremiumResult !== null
         };
 
-        // Clear old errors when the user updates input.
+        // Clear old page-level errors when the user updates input.
         this.clearError();
     }
 
     // Handles typing in the Requested Monthly Premium field.
     handleRequestedMonthlyPremiumChange(event) {
+        // Ask lightning-input to show inline validation if the value is invalid.
+        event.target.reportValidity();
+
         // Store the entered value.
         this.goalData = {
             ...this.goalData,
@@ -340,7 +401,7 @@ export default class UlsCalculator extends LightningElement {
             isFinalUavStale: this.goalData.finalUavResult !== null
         };
 
-        // Clear old errors when the user updates input.
+        // Clear old page-level errors when the user updates input.
         this.clearError();
     }
 
