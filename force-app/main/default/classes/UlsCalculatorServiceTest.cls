@@ -1,0 +1,138 @@
+/**
+ * UlsCalculatorServiceTest
+ *
+ * Purpose:
+ * - Tests the first service framework.
+ * - Tests validation behavior.
+ * - Tests calculator kill switch behavior.
+ * - Tests document generation kill switch behavior.
+ * - Tests basic backend success/error response handling using an HTTP mock.
+ */
+@IsTest
+private class UlsCalculatorServiceTest {
+
+    /**
+     * Simple reusable HTTP mock for this starter test class.
+     *
+     * Later, we can move this into a shared UlsHttpCalloutMock.cls file.
+     */
+    private class SimpleHttpMock implements HttpCalloutMock {
+        private Integer statusCode;
+        private String responseBody;
+
+        SimpleHttpMock(Integer statusCode, String responseBody) {
+            this.statusCode = statusCode;
+            this.responseBody = responseBody;
+        }
+
+        public HttpResponse respond(HttpRequest request) {
+            HttpResponse response = new HttpResponse();
+
+            response.setStatusCode(statusCode);
+            response.setHeader('Content-Type', 'application/json');
+            response.setBody(responseBody);
+
+            return response;
+        }
+    }
+
+    @IsTest
+    static void retrievePolicy_blankPolicy_returnsValidationError() {
+        UlsCalculatorService.resetTestOverrides();
+
+        UlsCalculatorService.testCalculatorEnabledOverride = true;
+
+        UlsCalculatorDto.ApiResponse response = UlsCalculatorService.retrievePolicy('', 'TEST-CORR-001');
+
+        System.Assert.areEqual(false, response.success, 'Blank policy number should fail.');
+        System.Assert.areEqual('INVALID_POLICY_FORMAT', response.errorCode, 'Expected validation error code.');
+        System.Assert.areEqual('TEST-CORR-001', response.correlationId, 'Correlation ID should be preserved.');
+
+        UlsCalculatorService.resetTestOverrides();
+    }
+
+    @IsTest
+    static void retrievePolicy_calculatorDisabled_returnsDisabledError() {
+        UlsCalculatorService.resetTestOverrides();
+
+        UlsCalculatorService.testCalculatorEnabledOverride = false;
+
+        UlsCalculatorDto.ApiResponse response = UlsCalculatorService.retrievePolicy('POL12345', 'TEST-CORR-002');
+
+        System.Assert.areEqual(false, response.success, 'Disabled calculator should fail safely.');
+        System.Assert.areEqual('CALCULATOR_DISABLED', response.errorCode, 'Expected calculator disabled error.');
+        System.Assert.areEqual('TEST-CORR-002', response.correlationId, 'Correlation ID should be preserved.');
+
+        UlsCalculatorService.resetTestOverrides();
+    }
+
+    @IsTest
+    static void getInflationRate_success_returnsSuccessResponse() {
+        UlsCalculatorService.resetTestOverrides();
+
+        UlsCalculatorService.testCalculatorEnabledOverride = true;
+        UlsCalculatorService.testIncludeSuccessLogsOverride = false;
+
+        Test.setMock(
+            HttpCalloutMock.class,
+            new SimpleHttpMock(
+                200,
+                '{"inflationRate":5.0}'
+            )
+        );
+
+        Test.startTest();
+        UlsCalculatorDto.ApiResponse response = UlsCalculatorService.getInflationRate('TEST-CORR-003');
+        Test.stopTest();
+
+        System.Assert.areEqual(true, response.success, 'Successful backend response should return success=true.');
+        System.Assert.areEqual(null, response.errorCode, 'Successful response should not have an error code.');
+        System.Assert.areEqual('TEST-CORR-003', response.correlationId, 'Correlation ID should be preserved.');
+        System.Assert.areNotEqual(null, response.data, 'Response data should be populated.');
+
+        UlsCalculatorService.resetTestOverrides();
+    }
+
+    @IsTest
+    static void getInflationRate_backendError_mapsSafely() {
+        UlsCalculatorService.resetTestOverrides();
+
+        UlsCalculatorService.testCalculatorEnabledOverride = true;
+
+        Test.setMock(
+            HttpCalloutMock.class,
+            new SimpleHttpMock(
+                503,
+                '{"errorCode":"INFLATION_RATE_UNAVAILABLE","message":"Inflation source is down."}'
+            )
+        );
+
+        Test.startTest();
+        UlsCalculatorDto.ApiResponse response = UlsCalculatorService.getInflationRate('TEST-CORR-004');
+        Test.stopTest();
+
+        System.Assert.areEqual(false, response.success, 'Backend error should return success=false.');
+        System.Assert.areEqual('INFLATION_RATE_UNAVAILABLE', response.errorCode, 'Backend error should map to safe error code.');
+        System.Assert.areEqual('TEST-CORR-004', response.correlationId, 'Correlation ID should be preserved.');
+
+        UlsCalculatorService.resetTestOverrides();
+    }
+
+    @IsTest
+    static void generateFinalPdf_documentDisabled_returnsDisabledError() {
+        UlsCalculatorService.resetTestOverrides();
+
+        UlsCalculatorService.testCalculatorEnabledOverride = true;
+        UlsCalculatorService.testDocumentGenerationEnabledOverride = false;
+
+        UlsCalculatorDto.FinalPdfRequest request = new UlsCalculatorDto.FinalPdfRequest();
+
+        UlsCalculatorDto.ApiResponse response = UlsCalculatorService.generateFinalPdf(request, 'TEST-CORR-005');
+
+        System.Assert.areEqual(false, response.success, 'Disabled document generation should fail safely.');
+        System.Assert.areEqual('DOCUMENT_GENERATION_DISABLED', response.errorCode, 'Expected document disabled error.');
+        System.Assert.areEqual('TEST-CORR-005', response.correlationId, 'Correlation ID should be preserved.');
+
+        UlsCalculatorService.resetTestOverrides();
+    }
+}
