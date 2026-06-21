@@ -717,6 +717,9 @@ export default class UlsCalculator extends LightningElement {
     if (this.currentStep > 1) {
       this.currentStep -= 1;
     }
+    if (this.currentStep === 1) {
+      this.policyNumber = "";
+    }
   }
 
   // Moves to the next step.
