@@ -1,438 +1,760 @@
 <template>
-  <!-- Main calculator shell -->
-  <div class="uls-page">
-    <!-- Header area for the calculator -->
-    <section class="uls-header">
-      <div>
-        <!-- Main title shown to the sales user -->
-        <h1 class="uls-title">ULS Calculator</h1>
+  <!-- Full AXA-style calculator shell. -->
+  <div class="uls-shell">
+    <!-- Top navigation/header area inspired by the uploaded AXA prototype. -->
+    <header class="uls-topbar">
+      <!-- Brand/title area. -->
+      <div class="uls-topbar-brand">
+        <!-- AXA logo block recreated with local CSS instead of external images/CDNs. -->
+        <div class="uls-axa-logo">AXA</div>
 
-        <!-- Short helper text explaining the purpose of the page -->
-        <p class="uls-subtitle">
-          Retrieve policy data, define goals, apply alterations, and generate
-          projections.
-        </p>
-      </div>
-    </section>
+        <!-- Divider between the logo and page title. -->
+        <div class="uls-topbar-divider"></div>
 
-    <!-- Stepper card -->
-    <section class="uls-card uls-stepper-card">
-      <!-- Visual stepper showing where the user is in the guided flow -->
-      <ol class="uls-stepper">
-        <template for:each={steps} for:item="step">
-          <li key={step.number} class={step.cssClass}>
-            <span class="uls-step-number">{step.number}</span>
-            <span class="uls-step-label">{step.label}</span>
-          </li>
-        </template>
-      </ol>
-    </section>
-
-    <!-- Shared loading message area -->
-    <template if:true={isLoading}>
-      <section class="uls-loading">
-        <lightning-spinner alternative-text="Loading" size="small">
-        </lightning-spinner>
-
-        <span class="uls-loading-text">{loadingMessage}</span>
-      </section>
-    </template>
-
-    <!-- Shared safe error panel -->
-    <template if:true={hasError}>
-      <section class="uls-error-panel" role="alert">
-        <!-- User-safe error title -->
-        <h2 class="uls-error-title">We could not complete this action</h2>
-
-        <!-- User-safe message returned by Apex -->
-        <p class="uls-error-message">{errorState.userMessage}</p>
-
-        <!-- Error code helps support identify the issue category -->
-        <template if:true={errorState.errorCode}>
-          <p class="uls-error-detail">
-            <strong>Error Code:</strong> {errorState.errorCode}
-          </p>
-        </template>
-
-        <!-- Correlation ID helps IT Support trace the issue in logs -->
-        <template if:true={errorState.correlationId}>
-          <p class="uls-error-detail">
-            <strong>Correlation ID:</strong> {errorState.correlationId}
-          </p>
-        </template>
-
-        <!-- Button to clear the current error message from the screen -->
-        <lightning-button
-          label="Dismiss"
-          variant="neutral"
-          onclick={clearError}
+        <!-- Clickable application title. Resets the calculator back to Step 1. -->
+        <button
+          class="uls-topbar-title-button"
+          type="button"
+          onclick={handleResetCalculator}
+          title="Uls Calculator"
         >
-        </lightning-button>
-      </section>
-    </template>
-
-    <!-- Step content card -->
-    <section class="uls-card">
-      <!-- Step 1: Policy Retrieval -->
-      <template if:true={isStep1}>
-        <div class="uls-section-heading">
-          <h2>Step 1: Policy Retrieval</h2>
-          <p>
-            Enter the policy number, then retrieve the latest available policy
-            data.
-          </p>
-        </div>
-
-        <!-- Policy retrieval form -->
-        <div class="uls-form-grid">
-          <!-- Policy number input controlled by JavaScript state -->
-          <lightning-input
-            name="policyNumber"
-            label="Policy Number"
-            value={policyNumber}
-            placeholder="Enter policy number"
-            onchange={handlePolicyNumberChange}
-            disabled={isLoading}
-            required
-          >
-          </lightning-input>
-
-          <!-- Retrieve button. Disabled while loading to prevent duplicate submit. -->
-          <div class="uls-button-row">
-            <lightning-button
-              label="Retrieve Policy"
-              variant="brand"
-              onclick={handleRetrievePolicy}
-              disabled={isRetrieveDisabled}
-            >
-            </lightning-button>
-          </div>
-        </div>
-
-        <!-- Small helper message for the user -->
-        <p class="uls-help-text">
-          The policy number is mandatory. The policy must exist and must be
-          eligible for ULS calculation.
-        </p>
-      </template>
-
-      <!-- Step 2: Define Goal -->
-      <template if:true={isStep2}>
-        <div class="uls-section-heading">
-          <h2>Step 2: Define Goal</h2>
-          <p>
-            Review the retrieved policy details, load the inflation rate, and
-            calculate the target values.
-          </p>
-        </div>
-
-        <!-- Basic retrieved policy summary -->
-        <template if:true={hasPolicyData}>
-          <div class="uls-summary-card">
-            <h3>Retrieved Policy Summary</h3>
-
-            <dl class="uls-summary-grid">
-              <div>
-                <dt>Policy Number</dt>
-                <dd>{displayPolicyNumber}</dd>
-              </div>
-
-              <div>
-                <dt>Customer Name</dt>
-                <dd>{displayCustomerName}</dd>
-              </div>
-
-              <div>
-                <dt>Maturity Date</dt>
-                <dd>{displayMaturityDate}</dd>
-              </div>
-
-              <div>
-                <dt>Current Premium</dt>
-                <dd>{displayCurrentPremium}</dd>
-              </div>
-
-              <div>
-                <dt>Current UAV</dt>
-                <dd>{displayCurrentUav}</dd>
-              </div>
-
-              <div>
-                <dt>Missed Premiums</dt>
-                <dd>{displayMissedPremiums}</dd>
-              </div>
-            </dl>
-          </div>
-        </template>
-
-        <!-- Inflation rate card -->
-        <div class="uls-action-card">
-          <div>
-            <h3>Inflation Rate</h3>
-            <p>
-              Inflation percentage is fetched from the backend and displayed as
-              read-only information.
-            </p>
-          </div>
-
-          <div class="uls-action-row">
-            <div class="uls-result-pill">
-              Current Inflation Rate: <strong>{displayInflationRate}</strong>
-            </div>
-
-            <lightning-button
-              label="Load Inflation Rate"
-              variant="neutral"
-              onclick={handleLoadInflationRate}
-              disabled={isLoading}
-            >
-            </lightning-button>
-          </div>
-        </div>
-
-        <!-- Goal input form -->
-        <div class="uls-goal-grid">
-          <!-- Initial Target UAV input -->
-          <lightning-input
-            type="number"
-            name="initialTargetUav"
-            label="Initial Target UAV"
-            value={goalData.initialTargetUav}
-            placeholder="Enter initial target UAV"
-            min="0"
-            step="0.01"
-            message-when-range-underflow="Amount cannot be less than zero."
-            message-when-bad-input="Please enter a valid number."
-            onchange={handleInitialTargetUavChange}
-            disabled={isLoading}
-          >
-          </lightning-input>
-
-          <!-- Requested Final UAV input -->
-          <lightning-input
-            type="number"
-            name="requestedFinalUav"
-            label="Requested Final UAV"
-            value={goalData.requestedFinalUav}
-            placeholder="Enter requested final UAV"
-            min="0"
-            step="0.01"
-            message-when-range-underflow="Amount cannot be less than zero."
-            message-when-bad-input="Please enter a valid number."
-            onchange={handleRequestedFinalUavChange}
-            disabled={isLoading}
-          >
-          </lightning-input>
-
-          <!-- Requested Monthly Premium input -->
-          <lightning-input
-            type="number"
-            name="requestedMonthlyPremium"
-            label="Requested Monthly Premium"
-            value={goalData.requestedMonthlyPremium}
-            placeholder="Enter requested monthly premium"
-            min="0"
-            step="0.01"
-            message-when-range-underflow="Amount cannot be less than zero."
-            message-when-bad-input="Please enter a valid number."
-            onchange={handleRequestedMonthlyPremiumChange}
-            disabled={isLoading}
-          >
-          </lightning-input>
-        </div>
-
-        <!-- Calculation action buttons -->
-        <div class="uls-calculation-actions">
-          <lightning-button
-            label="Calculate Inflation-Adjusted UAV"
-            variant="brand"
-            onclick={handleCalculateInflationAdjustedUav}
-            disabled={isCalculateInflationAdjustedDisabled}
-          >
-          </lightning-button>
-
-          <lightning-button
-            label="Calculate Suggested Premium"
-            variant="brand"
-            onclick={handleCalculateSuggestedPremium}
-            disabled={isCalculateSuggestedPremiumDisabled}
-          >
-          </lightning-button>
-
-          <lightning-button
-            label="Recalculate Final UAV"
-            variant="brand"
-            onclick={handleCalculateFinalUav}
-            disabled={isCalculateFinalUavDisabled}
-          >
-          </lightning-button>
-        </div>
-
-        <!-- Stale result warning -->
-        <template if:true={hasStaleGoalResults}>
-          <div class="uls-warning-panel">
-            One or more inputs changed after calculation. Please recalculate
-            before continuing.
-          </div>
-        </template>
-
-        <!-- Results area -->
-        <div class="uls-results-grid">
-          <!-- Inflation-adjusted UAV result -->
-          <div class="uls-result-card">
-            <h3>Inflation-Adjusted UAV</h3>
-
-            <dl>
-              <div>
-                <dt>Initial UAV</dt>
-                <dd>{displayInitialUavResult}</dd>
-              </div>
-
-              <div>
-                <dt>Inflation Rate</dt>
-                <dd>{displayInflationAdjustedRate}</dd>
-              </div>
-
-              <div>
-                <dt>Remaining Years</dt>
-                <dd>{displayRemainingYears}</dd>
-              </div>
-
-              <div>
-                <dt>Inflation-Adjusted Amount</dt>
-                <dd>{displayInflationAdjustedAmount}</dd>
-              </div>
-            </dl>
-          </div>
-
-          <!-- Suggested premium result -->
-          <div class="uls-result-card">
-            <h3>Suggested Premium</h3>
-
-            <dl>
-              <div>
-                <dt>Target Final UAV</dt>
-                <dd>{displaySuggestedTargetFinalUav}</dd>
-              </div>
-
-              <div>
-                <dt>Suggested Premium</dt>
-                <dd>{displaySuggestedPremium}</dd>
-              </div>
-
-              <div>
-                <dt>Current Premium</dt>
-                <dd>{displaySuggestedCurrentPremium}</dd>
-              </div>
-
-              <div>
-                <dt>Difference</dt>
-                <dd>{displaySuggestedDifference}</dd>
-              </div>
-            </dl>
-          </div>
-
-          <!-- Final UAV result -->
-          <div class="uls-result-card">
-            <h3>Projected Final UAV</h3>
-
-            <dl>
-              <div>
-                <dt>Requested Premium</dt>
-                <dd>{displayRequestedPremiumResult}</dd>
-              </div>
-
-              <div>
-                <dt>Current Premium</dt>
-                <dd>{displayFinalUavCurrentPremium}</dd>
-              </div>
-
-              <div>
-                <dt>Difference</dt>
-                <dd>{displayFinalUavDifference}</dd>
-              </div>
-
-              <div>
-                <dt>Projected Final UAV</dt>
-                <dd>{displayProjectedFinalUav}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </template>
-
-      <!-- Step 3: Apply Alterations -->
-      <template if:true={isStep3}>
-        <div class="uls-section-heading">
-          <h2>Step 3: Apply Alterations</h2>
-          <p>
-            Alteration sections will be wired after policy retrieval and goal
-            calculation are complete.
-          </p>
-        </div>
-
-        <div class="uls-placeholder">
-          Fund switching, ASP, premium redirection, premium change, and term
-          extension will be added later.
-        </div>
-      </template>
-
-      <!-- Step 4: Consolidated Review -->
-      <template if:true={isStep4}>
-        <div class="uls-section-heading">
-          <h2>Step 4: Consolidated Review</h2>
-          <p>
-            The generated projection and year-by-year table will appear here
-            later.
-          </p>
-        </div>
-
-        <div class="uls-placeholder">
-          Consolidated review is not implemented yet.
-        </div>
-      </template>
-
-      <!-- Step 5: Generated Package -->
-      <template if:true={isStep5}>
-        <div class="uls-section-heading">
-          <h2>Step 5: Generated Package</h2>
-          <p>
-            Document generation is currently controlled by configuration and
-            will be implemented later.
-          </p>
-        </div>
-
-        <div class="uls-placeholder">
-          Package generation is not implemented yet.
-        </div>
-      </template>
-
-      <!-- Navigation buttons -->
-      <div class="uls-navigation">
-        <!-- Back button is hidden on Step 1 -->
-        <template if:false={isStep1}>
-          <lightning-button
-            label="Back"
-            variant="neutral"
-            onclick={handleBack}
-            disabled={isLoading}
-          >
-          </lightning-button>
-        </template>
-
-        <!-- Manual Next button is hidden on Step 1 because Retrieve controls moving to Step 2 -->
-        <template if:false={isStep1}>
-          <template if:false={isStep5}>
-            <lightning-button
-              label="Next"
-              variant="brand"
-              onclick={handleNext}
-              disabled={isNextDisabled}
-            >
-            </lightning-button>
-          </template>
-        </template>
+          Egypt | ULS Upselling Calculator
+        </button>
       </div>
-    </section>
+
+      <!-- Safe user placeholder area. This does not expose any sensitive data. -->
+      <div class="uls-topbar-user">
+        <div class="uls-user-copy">
+          <p class="uls-user-name">Sales Advisor</p>
+          <p class="uls-user-role">Portfolio Management</p>
+        </div>
+
+        <!-- Simple avatar placeholder, no external icon library. -->
+        <div class="uls-user-avatar" aria-hidden="true">SA</div>
+      </div>
+    </header>
+
+    <!-- Body contains left navigation and main workspace. -->
+    <div class="uls-body">
+      <!-- Main workspace area. -->
+      <main class="uls-main">
+        <div class="uls-workspace">
+          <!-- Sticky stepper. We only support Step 1 and Step 2 for now. -->
+          <section class="uls-stepper" aria-label="ULS calculator progress">
+            <!-- Stepper state when user is on Step 1. -->
+            <template if:true={isStep1}>
+              <div class="uls-stepper-list">
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number uls-step-number-active">1</div>
+                    <div class="uls-step-label uls-step-label-active">
+                      Retrieve Policy
+                    </div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">2</div>
+                    <div class="uls-step-label">Define Goal</div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">3</div>
+                    <div class="uls-step-label">Apply Alterations</div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">4</div>
+                    <div class="uls-step-label">View Projections</div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">5</div>
+                    <div class="uls-step-label">Generate Package</div>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- Stepper state when user is on Step 2. -->
+            <template if:true={isStep2}>
+              <div class="uls-stepper-list">
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number uls-step-number-active">1</div>
+                    <div class="uls-step-label uls-step-label-active">
+                      Retrieve Policy
+                    </div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number uls-step-number-active">2</div>
+                    <div class="uls-step-label uls-step-label-active">
+                      Define Goal
+                    </div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">3</div>
+                    <div class="uls-step-label">Apply Alterations</div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">4</div>
+                    <div class="uls-step-label">View Projections</div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">5</div>
+                    <div class="uls-step-label">Generate Package</div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </section>
+
+          <!-- Shared loading message area. -->
+          <template if:true={isLoading}>
+            <section class="uls-card uls-data-card-header" aria-live="polite">
+              <lightning-spinner alternative-text="Loading" size="small">
+              </lightning-spinner>
+
+              <span class="uls-section-title">{loadingMessage}</span>
+            </section>
+          </template>
+
+          <!-- Shared safe error panel. -->
+          <template if:true={hasError}>
+            <section class="uls-error-panel" role="alert">
+              <!-- User-safe error title. -->
+              <h2 class="uls-error-title">We could not complete this action</h2>
+
+              <!-- User-safe Apex message. -->
+              <p class="uls-error-message">{errorState.userMessage}</p>
+
+              <!-- Error code for support troubleshooting. -->
+              <template if:true={errorState.errorCode}>
+                <p class="uls-error-support">
+                  <strong>Error Code:</strong> {errorState.errorCode}
+                </p>
+              </template>
+
+              <!-- Correlation ID for Salesforce-side troubleshooting. -->
+              <template if:true={errorState.correlationId}>
+                <p class="uls-error-support">
+                  <strong>Correlation ID:</strong> {errorState.correlationId}
+                </p>
+              </template>
+
+              <!-- Clears the visible error only. -->
+              <div class="uls-button-row">
+                <button
+                  class="uls-button-secondary"
+                  type="button"
+                  onclick={clearError}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </section>
+          </template>
+
+          <!-- Step 1: Policy Retrieval. -->
+          <template if:true={isStep1}>
+            <section class="uls-retrieval-wrap uls-fade-in">
+              <div class="uls-card uls-retrieval-card">
+                <h2 class="uls-retrieval-title">Policy Retrieval</h2>
+
+                <p class="uls-retrieval-subtitle">
+                  Access Unit Linked Savings data to begin simulation.
+                </p>
+
+                <div class="uls-policy-input-row">
+                  <!-- Policy number input remains wired to the existing LWC state. -->
+                  <lightning-input
+                    class="uls-policy-input"
+                    data-testid="policy-number-input"
+                    name="policyNumber"
+                    label="Policy Number"
+                    type="text"
+                    value={policyNumber}
+                    onchange={handlePolicyNumberChange}
+                    disabled={isLoading}
+                    placeholder="Enter policy number"
+                  >
+                  </lightning-input>
+
+                  <!-- Retrieve button remains wired to the existing Apex call. -->
+                  <button
+                    class="uls-button-primary"
+                    data-testid="retrieve-policy-button"
+                    type="button"
+                    onclick={handleRetrievePolicy}
+                    disabled={isRetrieveDisabled}
+                  >
+                    <template if:true={isLoading}>Loading</template>
+                    <template if:false={isLoading}>Retrieve</template>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </template>
+
+          <!-- Step 2: Define Goal. -->
+          <template if:true={isStep2}>
+            <section class="uls-step-two-grid uls-fade-in">
+              <!-- Left/main content column. -->
+              <div class="uls-step-two-left">
+                <!-- Top customer summary card. -->
+                <section
+                  class="uls-card uls-card-highlight uls-customer-summary"
+                >
+                  <div>
+                    <h2 class="uls-customer-name">{displayCustomerName}</h2>
+
+                    <p class="uls-policy-context">
+                      Protection &amp; Savings
+                      <span aria-hidden="true"> | </span>
+                      #{displayPolicyNumber}
+                    </p>
+                  </div>
+
+                  <div class="uls-summary-metrics">
+                    <p>
+                      Current UAV:
+                      <span class="uls-metric-value">{displayCurrentUav}</span>
+                    </p>
+
+                    <p>
+                      Current Premium:
+                      <span class="uls-metric-value">
+                        {displayCurrentPremium}
+                      </span>
+                    </p>
+
+                    <p>
+                      Maturity Date:
+                      <span class="uls-metric-value">
+                        {displayMaturityDate}
+                      </span>
+                    </p>
+                  </div>
+                </section>
+
+                <!-- Retrieved customer and policy data card. -->
+                <section class="uls-card">
+                  <div class="uls-data-card-header">
+                    <h3 class="uls-section-title">
+                      Retrieved Customer and Policy Data
+                    </h3>
+
+                    <span class="uls-pill">Core System Data</span>
+                  </div>
+
+                  <!-- Main policy/customer information. -->
+                  <div class="uls-data-section">
+                    <div class="uls-two-column-grid">
+                      <!-- Policy information block. -->
+                      <div>
+                        <h4 class="uls-data-block-title">Policy Information</h4>
+
+                        <div class="uls-detail-grid">
+                          <span class="uls-detail-label">Policy Number</span>
+                          <span class="uls-detail-value">
+                            {displayPolicyNumber}
+                          </span>
+
+                          <span class="uls-detail-label">Maturity Date</span>
+                          <span class="uls-detail-value">
+                            {displayMaturityDate}
+                          </span>
+
+                          <span class="uls-detail-label">Frequency</span>
+                          <span
+                            class="uls-detail-value uls-detail-value-uppercase"
+                          >
+                            <template if:true={policyData.frequency}>
+                              {policyData.frequency}
+                            </template>
+                            <template if:false={policyData.frequency}>
+                              <span class="uls-not-available">
+                                Not available
+                              </span>
+                            </template>
+                          </span>
+
+                          <span class="uls-detail-label">Initial Premium</span>
+                          <span class="uls-detail-value">
+                            <template if:true={policyData.initialPremium}>
+                              {policyData.initialPremium}
+                            </template>
+                            <template if:false={policyData.initialPremium}>
+                              <span class="uls-not-available">
+                                Not available
+                              </span>
+                            </template>
+                          </span>
+
+                          <span class="uls-detail-label">Current Premium</span>
+                          <span class="uls-detail-value">
+                            {displayCurrentPremium}
+                          </span>
+
+                          <span class="uls-detail-label">Missed Premiums</span>
+                          <span class="uls-detail-value">
+                            {displayMissedPremiums}
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Customer information block. -->
+                      <div>
+                        <h4 class="uls-data-block-title">
+                          Customer Information
+                        </h4>
+
+                        <div class="uls-detail-grid">
+                          <span class="uls-detail-label">Customer Name</span>
+                          <span
+                            class="uls-detail-value uls-detail-value-uppercase"
+                          >
+                            {displayCustomerName}
+                          </span>
+
+                          <span class="uls-detail-label">Age</span>
+                          <span class="uls-detail-value">
+                            <template if:true={policyData.lifeInsuredAge}>
+                              {policyData.lifeInsuredAge}
+                            </template>
+                            <template if:false={policyData.lifeInsuredAge}>
+                              <span class="uls-not-available">
+                                Not available
+                              </span>
+                            </template>
+                          </span>
+
+                          <span class="uls-detail-label">Gender</span>
+                          <span
+                            class="uls-detail-value uls-detail-value-uppercase"
+                          >
+                            <template if:true={policyData.lifeInsuredGender}>
+                              {policyData.lifeInsuredGender}
+                            </template>
+                            <template if:false={policyData.lifeInsuredGender}>
+                              <span class="uls-not-available">
+                                Not available
+                              </span>
+                            </template>
+                          </span>
+
+                          <span class="uls-detail-label">Insured DOB</span>
+                          <span class="uls-detail-value">
+                            <template if:true={policyData.lifeInsuredDOB}>
+                              {policyData.lifeInsuredDOB}
+                            </template>
+                            <template if:false={policyData.lifeInsuredDOB}>
+                              <span class="uls-not-available">
+                                Not available
+                              </span>
+                            </template>
+                          </span>
+
+                          <span class="uls-detail-label">Child DOB</span>
+                          <span class="uls-detail-value">
+                            <template if:true={policyData.childDob}>
+                              {policyData.childDob}
+                            </template>
+                            <template if:false={policyData.childDob}>
+                              <span class="uls-not-available">
+                                Not available
+                              </span>
+                            </template>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Investment and benefits area. -->
+                  <div class="uls-data-soft-section">
+                    <div class="uls-two-column-grid">
+                      <!-- Investment strategy block. -->
+                      <div>
+                        <h4 class="uls-data-block-title">
+                          Investment Strategy
+                        </h4>
+
+                        <template if:true={hasInvestmentFunds}>
+                          <div class="uls-allocation-list">
+                            <template
+                              for:each={displayInvestmentFunds}
+                              for:item="fund"
+                            >
+                              <div key={fund.key} class="uls-allocation-row">
+                                <span class="uls-allocation-name">
+                                  {fund.fundName}
+                                </span>
+
+                                <span class="uls-allocation-percent">
+                                  {fund.allocationPercentage}
+                                </span>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+
+                        <template if:false={hasInvestmentFunds}>
+                          <span class="uls-not-available">
+                            Fund not available
+                          </span>
+                        </template>
+                      </div>
+
+                      <!-- Benefits summary block. -->
+                      <div>
+                        <h4 class="uls-data-block-title">
+                          Current Benefits Summary
+                        </h4>
+
+                        <template if:true={hasBenefits}>
+                          <div class="uls-benefit-grid">
+                            <template
+                              for:each={displayBenefits}
+                              for:item="benefit"
+                            >
+                              <div key={benefit.key} class="uls-benefit-card">
+                                <p class="uls-benefit-label">{benefit.name}</p>
+                                <p class="uls-benefit-value">
+                                  {benefit.amount}
+                                </p>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+
+                        <template if:false={hasBenefits}>
+                          <span class="uls-not-available">
+                            Benefits not available
+                          </span>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <!-- Right sticky scenario summary. -->
+              <aside class="uls-card uls-scenario-card">
+                <div class="uls-scenario-header">
+                  <p class="uls-scenario-label">Scenario Analysis</p>
+
+                  <p class="uls-scenario-main">
+                    EGP {goalData.requestedMonthlyPremium}
+                    <span class="uls-scenario-suffix">/ Month</span>
+                  </p>
+                </div>
+
+                <div class="uls-scenario-body">
+                  <div class="uls-scenario-row">
+                    <span>Current Premium</span>
+                    <span>{displayCurrentPremium}</span>
+                  </div>
+
+                  <div class="uls-scenario-row">
+                    <span>Suggested Premium</span>
+                    <span>{displaySuggestedPremium}</span>
+                  </div>
+
+                  <div class="uls-scenario-row uls-scenario-row-strong">
+                    <span>Requested Premium</span>
+                    <span>EGP {goalData.requestedMonthlyPremium}</span>
+                  </div>
+
+                  <div class="uls-scenario-row uls-scenario-divider">
+                    <span>Monthly Increase</span>
+                    <span class="uls-positive"
+                      >{displayFinalUavDifference}</span
+                    >
+                  </div>
+
+                  <div class="uls-scenario-row">
+                    <span>Projected Final UAV</span>
+                    <span>{displayProjectedFinalUav}</span>
+                  </div>
+
+                  <!-- Step 3 is intentionally blocked until approved. -->
+                  <button
+                    class="uls-button-red"
+                    type="button"
+                    disabled
+                    title="Step 3 is not implemented yet."
+                  >
+                    Apply Alterations →
+                  </button>
+                </div>
+              </aside>
+
+              <!-- Goal-based target definition cards. -->
+              <section class="uls-goal-section">
+                <div class="uls-goal-section-header">
+                  <h2 class="uls-goal-title">Goal-Based Target Definition</h2>
+                  <p class="uls-goal-section-subtitle">
+                    Define each target separately, then run the relevant
+                    calculation.
+                  </p>
+                </div>
+
+                <div class="uls-goal-components-grid">
+                  <!-- Component 1: Target with inflation. -->
+                  <article class="uls-goal-component-card">
+                    <div class="uls-goal-component-header">
+                      <span class="uls-goal-component-number">1</span>
+                      <div>
+                        <h3 class="uls-goal-component-title">
+                          Target with Inflation
+                        </h3>
+                        <p class="uls-goal-component-helper">
+                          Enter the target UAV and calculate the
+                          inflation-adjusted future value.
+                        </p>
+                      </div>
+                    </div>
+
+                    <label class="uls-goal-label"> Initial Target UAV </label>
+
+                    <div class="uls-currency-row">
+                      <span class="uls-currency-prefix">EGP</span>
+
+                      <lightning-input
+                        class="uls-large-input"
+                        data-testid="initial-target-uav-input"
+                        name="initialTargetUav"
+                        variant="label-hidden"
+                        label="Initial Target UAV"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={goalData.initialTargetUav}
+                        onchange={handleInitialTargetUavChange}
+                        disabled={isLoading}
+                        message-when-range-underflow="Amount cannot be less than zero."
+                        message-when-bad-input="Please enter a valid number."
+                      >
+                      </lightning-input>
+                    </div>
+
+                    <div class="uls-goal-result-strip">
+                      <div>
+                        <span class="uls-goal-result-label"
+                          >Inflation Rate</span
+                        >
+                        <strong>{displayInflationRate}</strong>
+                      </div>
+
+                      <div>
+                        <span class="uls-goal-result-label">Adjusted FV</span>
+                        <strong>{displayInflationAdjustedAmount}</strong>
+                      </div>
+                    </div>
+
+                    <div class="uls-button-row">
+                      <button
+                        class="uls-button-secondary"
+                        type="button"
+                        onclick={handleLoadInflationRate}
+                        disabled={isLoading}
+                      >
+                        Load Inflation Rate
+                      </button>
+
+                      <button
+                        class="uls-button-primary"
+                        type="button"
+                        onclick={handleCalculateInflationAdjustedUav}
+                        disabled={isCalculateInflationAdjustedDisabled}
+                      >
+                        Calculate Inflation-Adjusted UAV
+                      </button>
+                    </div>
+
+                    <template if:true={goalData.isInflationAdjustedUavStale}>
+                      <p class="uls-stale-warning">
+                        Input changed. Please recalculate this result.
+                      </p>
+                    </template>
+                  </article>
+
+                  <!-- Component 2: Requested Final UAV. -->
+                  <article class="uls-goal-component-card">
+                    <div class="uls-goal-component-header">
+                      <span class="uls-goal-component-number">2</span>
+                      <div>
+                        <h3 class="uls-goal-component-title">
+                          Requested Final UAV
+                        </h3>
+                        <p class="uls-goal-component-helper">
+                          Enter the required final UAV and calculate the
+                          suggested premium.
+                        </p>
+                      </div>
+                    </div>
+
+                    <label class="uls-goal-label"> Requested Final UAV </label>
+
+                    <div class="uls-currency-row">
+                      <span class="uls-currency-prefix">EGP</span>
+
+                      <lightning-input
+                        class="uls-large-input"
+                        data-testid="requested-final-uav-input"
+                        name="requestedFinalUav"
+                        variant="label-hidden"
+                        label="Requested Final UAV"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={goalData.requestedFinalUav}
+                        onchange={handleRequestedFinalUavChange}
+                        disabled={isLoading}
+                        message-when-range-underflow="Amount cannot be less than zero."
+                        message-when-bad-input="Please enter a valid number."
+                      >
+                      </lightning-input>
+                    </div>
+
+                    <div class="uls-goal-result-strip">
+                      <div>
+                        <span class="uls-goal-result-label"
+                          >Suggested Premium</span
+                        >
+                        <strong>{displaySuggestedPremium}</strong>
+                      </div>
+                    </div>
+
+                    <div class="uls-button-row">
+                      <button
+                        class="uls-button-primary"
+                        type="button"
+                        onclick={handleCalculateSuggestedPremium}
+                        disabled={isCalculateSuggestedPremiumDisabled}
+                      >
+                        Calculate Suggested Premium
+                      </button>
+                    </div>
+
+                    <template if:true={goalData.isSuggestedPremiumStale}>
+                      <p class="uls-stale-warning">
+                        Input changed. Please recalculate this result.
+                      </p>
+                    </template>
+                  </article>
+
+                  <!-- Component 3: Requested Monthly Premium. -->
+                  <article
+                    class="uls-goal-component-card uls-goal-component-card-wide"
+                  >
+                    <div class="uls-goal-component-header">
+                      <span class="uls-goal-component-number">3</span>
+                      <div>
+                        <h3 class="uls-goal-component-title">
+                          Requested Monthly Premium
+                        </h3>
+                        <p class="uls-goal-component-helper">
+                          Enter the advisor-requested monthly premium and
+                          recalculate the projected final UAV.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="uls-goal-monthly-grid">
+                      <div>
+                        <label class="uls-goal-label">
+                          Requested Monthly Premium
+                        </label>
+
+                        <div class="uls-currency-row">
+                          <span class="uls-currency-prefix">EGP</span>
+
+                          <lightning-input
+                            class="uls-large-input"
+                            data-testid="requested-monthly-premium-input"
+                            name="requestedMonthlyPremium"
+                            variant="label-hidden"
+                            label="Requested Monthly Premium"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={goalData.requestedMonthlyPremium}
+                            onchange={handleRequestedMonthlyPremiumChange}
+                            disabled={isLoading}
+                            message-when-range-underflow="Amount cannot be less than zero."
+                            message-when-bad-input="Please enter a valid number."
+                          >
+                          </lightning-input>
+                        </div>
+                      </div>
+
+                      <div class="uls-goal-result-panel">
+                        <span class="uls-goal-result-label"
+                          >Monthly Increase</span
+                        >
+                        <strong class="uls-positive"
+                          >{displayFinalUavDifference}</strong
+                        >
+
+                        <span class="uls-goal-result-label"
+                          >Projected Final UAV</span
+                        >
+                        <strong>{displayProjectedFinalUav}</strong>
+                      </div>
+                    </div>
+
+                    <div class="uls-button-row">
+                      <button
+                        class="uls-button-primary"
+                        type="button"
+                        onclick={handleCalculateFinalUav}
+                        disabled={isCalculateFinalUavDisabled}
+                      >
+                        Recalculate Final UAV
+                      </button>
+                    </div>
+
+                    <template if:true={goalData.isFinalUavStale}>
+                      <p class="uls-stale-warning">
+                        Input changed. Please recalculate this result.
+                      </p>
+                    </template>
+                  </article>
+                </div>
+              </section>
+            </section>
+          </template>
+        </div>
+      </main>
+    </div>
   </div>
 </template>

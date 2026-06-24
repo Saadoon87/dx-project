@@ -1,371 +1,1144 @@
-/* Main page container */
-.uls-page {
-    padding: 1rem;
-    background: #f7f9fc;
-    min-height: 100%;
+/*
+  ULS Calculator - AXA-aligned styling foundation.
+
+  Purpose:
+  - Rebuild the LWC visual layer to follow the uploaded AXA dashboard prototype.
+  - Avoid external dependencies such as Tailwind CSS, Alpine.js, Font Awesome, or CDN fonts.
+  - Keep styling local to this component so the Salesforce org remains stable and secure.
+
+  Important:
+  - This CSS is only presentation.
+  - Apex, Named Credentials, DTOs, logging, and backend integration are not changed here.
+*/
+
+/* Main AXA design tokens used across the component. */
+:host {
+  --axa-blue: #00008f;
+  --axa-blue-dark: #00006f;
+  --axa-red: #ff0000;
+  --axa-red-dark: #cc0000;
+  --axa-teal: #007a8d;
+  --axa-page-bg: #f4f7fa;
+  --axa-border: #e2e8f0;
+  --axa-soft-border: #f1f5f9;
+  --axa-text: #1e293b;
+  --axa-muted: #64748b;
+  --axa-light-muted: #94a3b8;
+  --axa-card-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+  --axa-strong-shadow: 0 18px 35px rgba(15, 23, 42, 0.15);
+
+  display: block;
+  color: var(--axa-text);
 }
 
-/* Header area */
-.uls-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+/* Outer page shell. */
+.uls-shell {
+  min-height: 100vh;
+  background: var(--axa-page-bg);
+  font-family: "Salesforce Sans", Arial, sans-serif;
+  font-style: normal;
 }
 
-/* Main page title */
-.uls-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #00008f;
-    margin: 0;
+/* Top AXA-style header. */
+.uls-topbar {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--axa-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
-/* Subtitle below the main title */
-.uls-subtitle {
-    color: #4b5563;
-    margin-top: 0.25rem;
+/* Left area in top bar: AXA logo + title. */
+.uls-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-/* Shared white card style */
+/* Simple AXA logo block. */
+.uls-axa-logo {
+  background: var(--axa-blue);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.08em;
+  padding: 4px 12px;
+  line-height: 1.3;
+}
+
+/* Divider between logo and page title. */
+.uls-topbar-divider {
+  height: 32px;
+  width: 1px;
+  background: #cbd5e1;
+}
+
+/* Header title. */
+.uls-topbar-title {
+  color: var(--axa-blue);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Clickable header title used to reset the calculator. */
+.uls-topbar-title-button {
+  border: 0;
+  background: transparent;
+  color: var(--axa-blue);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 0;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.uls-topbar-title-button:hover,
+.uls-topbar-title-button:focus {
+  color: var(--axa-blue-dark);
+  outline: none;
+}
+
+/* User info area on the right side of the header. */
+.uls-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* User text block. */
+.uls-user-copy {
+  text-align: right;
+}
+
+/* User name placeholder. */
+.uls-user-name {
+  margin: 0;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* User role placeholder. */
+.uls-user-role {
+  margin: 2px 0 0;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Circular user avatar placeholder. */
+.uls-user-avatar {
+  height: 40px;
+  width: 40px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid var(--axa-border);
+  color: var(--axa-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* Layout below the topbar. */
+.uls-body {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
+
+/* Left navigation sidebar. */
+.uls-sidebar {
+  width: 256px;
+  flex: 0 0 256px;
+  background: var(--axa-blue);
+  color: #ffffff;
+  box-shadow: var(--axa-strong-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidebar inner padding. */
+.uls-sidebar-inner {
+  padding: 24px;
+}
+
+/* Sidebar section label. */
+.uls-sidebar-label {
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin: 0 0 16px;
+}
+
+/* Sidebar navigation item. */
+.uls-sidebar-item {
+  width: 100%;
+  border: 0;
+  border-left: 4px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #ffffff;
+  padding: 12px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: default;
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Active sidebar item. */
+.uls-sidebar-item-active {
+  border-left-color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  opacity: 1;
+}
+
+/* Small icon placeholder inside sidebar item. */
+.uls-sidebar-icon {
+  width: 18px;
+  text-align: center;
+  font-weight: 900;
+}
+
+/* Main workspace. */
+.uls-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Workspace content width and spacing. */
+.uls-workspace {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 24px 32px;
+}
+
+/* Reusable dashboard card. */
 .uls-card {
-    background: #ffffff;
-    border: 1px solid #d8dde6;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  border: 1px solid var(--axa-border);
+  border-radius: 10px;
+  box-shadow: var(--axa-card-shadow);
 }
 
-/* Smaller spacing for the stepper card */
-.uls-stepper-card {
-    padding: 0.75rem 1rem;
+/* Stronger highlighted card. */
+.uls-card-highlight {
+  border-left: 4px solid var(--axa-blue);
 }
 
-/* Stepper list container */
+/* Generic section title. */
+.uls-section-title {
+  margin: 0;
+  color: var(--axa-blue);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Generic muted helper text. */
+.uls-muted {
+  color: var(--axa-muted);
+}
+
+/* Sticky horizontal stepper wrapper. */
 .uls-stepper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: var(--axa-card-shadow);
+  padding: 16px;
+  margin-bottom: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
 }
 
-/* Single step item */
-.uls-step {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: #6b7280;
-    font-weight: 600;
+/* Stepper list. */
+.uls-stepper-list {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
 }
 
-/* Active step item */
-.uls-step-active {
-    color: #00008f;
+/* Individual stepper item. */
+.uls-stepper-item {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
 }
 
-/* Completed step item */
-.uls-step-complete {
-    color: #15803d;
+/* Stepper item content. */
+.uls-stepper-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Circle number beside each step */
+/* Stepper circle. */
 .uls-step-number {
-    width: 1.65rem;
-    height: 1.65rem;
-    border-radius: 999px;
-    border: 1px solid currentColor;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
+  height: 28px;
+  width: 28px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Step label text */
+/* Active/completed stepper circle. */
+.uls-step-number-active {
+  background: var(--axa-blue);
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0, 0, 143, 0.25);
+}
+
+/* Stepper label. */
 .uls-step-label {
-    font-size: 0.85rem;
+  margin-top: 8px;
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
-/* Loading state wrapper */
-.uls-loading {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: #ffffff;
-    border: 1px solid #d8dde6;
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
+/* Active/completed stepper label. */
+.uls-step-label-active {
+  color: var(--axa-blue);
+  font-weight: 900;
 }
 
-/* Loading text */
-.uls-loading-text {
-    color: #374151;
-    font-weight: 600;
+/* Stepper connector line. */
+.uls-step-line {
+  height: 1px;
+  background: #e5e7eb;
+  flex: 1;
+  margin: 14px 8px 0;
 }
 
-/* Error panel */
-.uls-error-panel {
-    background: #fff1f2;
-    border: 1px solid #fecdd3;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
+/* Step 1 centered wrapper. */
+.uls-retrieval-wrap {
+  max-width: 576px;
+  margin: 0 auto;
+  padding: 80px 0;
 }
 
-/* Error title */
-.uls-error-title {
-    color: #be123c;
-    font-size: 1rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
+/* Step 1 card. */
+.uls-retrieval-card {
+  padding: 40px;
+  text-align: center;
 }
 
-/* Error message */
-.uls-error-message {
-    color: #7f1d1d;
-    margin-bottom: 0.5rem;
+/* Step 1 title. */
+.uls-retrieval-title {
+  margin: 0 0 8px;
+  color: #1f2937;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 
-/* Error detail rows */
-.uls-error-detail {
-    color: #7f1d1d;
-    margin: 0.25rem 0;
-    font-size: 0.85rem;
+/* Step 1 subtitle. */
+.uls-retrieval-subtitle {
+  margin: 0 0 40px;
+  color: #64748b;
+  font-size: 14px;
 }
 
-/* Warning panel for stale calculated results */
-.uls-warning-panel {
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    color: #92400e;
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    margin: 1rem 0;
-    font-weight: 600;
+/* Step 1 input/button row. */
+.uls-policy-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
 }
 
-/* Section heading */
-.uls-section-heading {
-    margin-bottom: 1rem;
+/* Step 1 input. */
+.uls-policy-input {
+  flex: 1;
 }
 
-/* Section heading title */
-.uls-section-heading h2 {
-    font-size: 1.25rem;
-    color: #111827;
-    font-weight: 700;
-    margin: 0;
+/* Main AXA button. */
+.uls-button-primary {
+  border: 0;
+  border-radius: 8px;
+  background: var(--axa-blue);
+  color: #ffffff;
+  font-weight: 900;
+  padding: 0 28px;
+  min-height: 44px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 10px 18px rgba(0, 0, 143, 0.2);
 }
 
-/* Section heading description */
-.uls-section-heading p {
-    color: #4b5563;
-    margin-top: 0.25rem;
+/* Main AXA button hover. */
+.uls-button-primary:hover {
+  background: var(--axa-blue-dark);
 }
 
-/* Form layout */
-.uls-form-grid {
-    display: grid;
-    grid-template-columns: minmax(16rem, 24rem);
-    gap: 1rem;
+/* Main AXA button disabled. */
+.uls-button-primary:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
-/* Button row */
-.uls-button-row {
-    display: flex;
-    align-items: end;
+/* AXA red action button. */
+.uls-button-red {
+  border: 0;
+  border-radius: 8px;
+  background: var(--axa-red);
+  color: #ffffff;
+  font-weight: 900;
+  padding: 14px 20px;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 14px 22px rgba(255, 0, 0, 0.18);
 }
 
-/* Small helper text */
-.uls-help-text {
-    color: #6b7280;
-    font-size: 0.85rem;
-    margin-top: 1rem;
+/* Disabled red button. */
+.uls-button-red:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
-/* Summary card for retrieved policy */
-.uls-summary-card {
-    border: 1px solid #d8dde6;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    background: #f9fafb;
-    margin-bottom: 1rem;
+/* Secondary neutral button. */
+.uls-button-secondary {
+  border: 1px solid var(--axa-border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--axa-blue);
+  font-weight: 900;
+  padding: 12px 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-/* Summary card title */
-.uls-summary-card h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #111827;
-    margin: 0 0 0.75rem 0;
+/* Step 2 grid layout. */
+.uls-step-two-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(300px, 0.85fr);
+  gap: 24px;
+  align-items: start;
+  padding-bottom: 80px;
 }
 
-/* Summary grid layout */
-.uls-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin: 0;
+/* Left side in Step 2. */
+.uls-step-two-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-/* Summary field label */
-.uls-summary-grid dt {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-weight: 700;
-    text-transform: uppercase;
+/* Top customer summary card. */
+.uls-customer-summary {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-/* Summary field value */
-.uls-summary-grid dd {
-    margin: 0.15rem 0 0 0;
-    color: #111827;
-    font-weight: 600;
+/* Customer name. */
+.uls-customer-name {
+  margin: 0 0 6px;
+  color: #1f2937;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
-/* Card used for Step 2 actions */
-.uls-action-card {
-    border: 1px solid #d8dde6;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    background: #ffffff;
-    margin-bottom: 1rem;
+/* Policy context line. */
+.uls-policy-context {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-/* Action card title */
-.uls-action-card h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #111827;
-    margin: 0;
+/* Right side details inside top summary. */
+.uls-summary-metrics {
+  text-align: right;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.7;
+  text-transform: uppercase;
 }
 
-/* Action card description */
-.uls-action-card p {
-    color: #4b5563;
-    margin: 0.25rem 0 0 0;
+/* Highlighted metric value. */
+.uls-metric-value {
+  color: var(--axa-blue);
+  font-weight: 900;
 }
 
-/* Row containing action result and button */
-.uls-action-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
-    margin-top: 1rem;
+/* Data summary card header. */
+.uls-data-card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--axa-soft-border);
+  background: rgba(248, 250, 252, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* Small result badge */
-.uls-result-pill {
-    background: #eef2ff;
-    border: 1px solid #c7d2fe;
-    color: #312e81;
-    border-radius: 999px;
-    padding: 0.4rem 0.75rem;
+/* Small pill label. */
+.uls-pill {
+  background: #dbeafe;
+  color: var(--axa-blue);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* Goal input grid */
+/* Data summary content section. */
+.uls-data-section {
+  padding: 32px;
+}
+
+/* Two-column data grid. */
+.uls-two-column-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 64px;
+  row-gap: 32px;
+}
+
+/* Data block title. */
+.uls-data-block-title {
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--axa-border);
+  padding-bottom: 6px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Label/value data grid. */
+.uls-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr);
+  row-gap: 12px;
+  column-gap: 16px;
+  font-size: 12px;
+}
+
+/* Data label. */
+.uls-detail-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Data value. */
+.uls-detail-value {
+  color: #1f2937;
+  font-weight: 900;
+  text-transform: none;
+}
+
+/* Uppercase data value. */
+.uls-detail-value-uppercase {
+  text-transform: uppercase;
+}
+
+/* Soft lower part of data summary card. */
+.uls-data-soft-section {
+  padding: 32px;
+  border-top: 1px solid var(--axa-soft-border);
+  background: rgba(248, 250, 252, 0.35);
+}
+
+/* Investment allocation list. */
+.uls-allocation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Investment allocation row. */
+.uls-allocation-row {
+  background: #ffffff;
+  border: 1px solid var(--axa-soft-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Allocation name. */
+.uls-allocation-name {
+  color: #1f2937;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Allocation percent. */
+.uls-allocation-percent {
+  color: var(--axa-blue);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+/* Benefit card grid. */
+.uls-benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Benefit mini card. */
+.uls-benefit-card {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+/* Benefit label. */
+.uls-benefit-label {
+  margin: 0 0 4px;
+  color: var(--axa-blue);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Benefit value. */
+.uls-benefit-value {
+  margin: 0;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+/* Goal card. */
+.uls-goal-card {
+  padding: 32px;
+  border: 2px solid var(--axa-blue);
+  box-shadow: var(--axa-strong-shadow);
+}
+
+/* Goal card title. */
+.uls-goal-title {
+  margin: 0 0 32px;
+  color: var(--axa-blue);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* Goal grid. */
 .uls-goal-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(12rem, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 48px;
 }
 
-/* Calculation button container */
-.uls-calculation-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin: 1rem 0;
+/* Goal column spacing. */
+.uls-goal-column {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-/* Results card grid */
-.uls-results-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(14rem, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+/* Goal input tile. */
+.uls-goal-tile {
+  background: #f8fafc;
+  border: 1px solid var(--axa-soft-border);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.05);
+  padding: 16px;
 }
 
-/* Individual calculation result card */
-.uls-result-card {
-    border: 1px solid #d8dde6;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    background: #f9fafb;
+/* Goal input label. */
+.uls-goal-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-/* Calculation result card title */
-.uls-result-card h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #111827;
-    margin: 0 0 0.75rem 0;
+/* Blue label variant. */
+.uls-goal-label-blue {
+  color: var(--axa-blue);
 }
 
-/* Result definition list */
-.uls-result-card dl {
-    margin: 0;
+/* Currency input row. */
+.uls-currency-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid #e5e7eb;
+  padding: 8px 0;
 }
 
-/* Result row spacing */
-.uls-result-card dl div {
-    margin-bottom: 0.75rem;
+/* Currency label. */
+.uls-currency-prefix {
+  color: #cbd5e1;
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-/* Result label */
-.uls-result-card dt {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-weight: 700;
-    text-transform: uppercase;
+/* Large input wrapper. */
+.uls-large-input {
+  flex: 1;
 }
 
-/* Result value */
-.uls-result-card dd {
-    margin: 0.15rem 0 0 0;
-    color: #111827;
-    font-weight: 600;
+/* Read-only result tile. */
+.uls-result-tile {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 143, 0.08);
+  padding: 16px;
 }
 
-/* Placeholder boxes for future steps */
-.uls-placeholder {
-    border: 1px dashed #cbd5e1;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    background: #f8fafc;
-    color: #64748b;
+/* Large result amount. */
+.uls-large-amount {
+  color: var(--axa-blue);
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
 }
 
-/* Bottom navigation buttons */
-.uls-navigation {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5rem;
+/* Goal helper text. */
+.uls-goal-helper {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-/* Responsive layout for medium screens */
-@media only screen and (max-width: 1100px) {
-    .uls-goal-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .uls-results-grid {
-        grid-template-columns: 1fr;
-    }
+/* Positive value. */
+.uls-positive {
+  color: #16a34a;
 }
 
-/* Responsive layout for smaller screens */
-@media only screen and (max-width: 700px) {
-    .uls-summary-grid {
-        grid-template-columns: 1fr;
-    }
+/* Error panel. */
+.uls-error-panel {
+  margin-top: 20px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 16px;
+  text-align: left;
+}
 
-    .uls-stepper {
-        flex-direction: column;
-    }
+/* Error title. */
+.uls-error-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* Error message. */
+.uls-error-message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Error support details. */
+.uls-error-support {
+  margin: 8px 0 0;
+  color: #7f1d1d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Right scenario card sticky wrapper. */
+.uls-scenario-card {
+  position: sticky;
+  top: 96px;
+  overflow: hidden;
+  border: 0;
+  box-shadow: var(--axa-strong-shadow);
+}
+
+/* Scenario card header. */
+.uls-scenario-header {
+  background: var(--axa-blue);
+  color: #ffffff;
+  padding: 24px;
+}
+
+/* Scenario label. */
+.uls-scenario-label {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+/* Scenario main value. */
+.uls-scenario-main {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+/* Scenario small suffix. */
+.uls-scenario-suffix {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+/* Scenario body. */
+.uls-scenario-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Scenario row. */
+.uls-scenario-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Scenario emphasized row. */
+.uls-scenario-row-strong {
+  background: #eff6ff;
+  border-radius: 8px;
+  color: var(--axa-blue);
+  font-size: 18px;
+  font-weight: 900;
+  padding: 12px;
+}
+
+/* Scenario divider row. */
+.uls-scenario-divider {
+  border-top: 1px solid var(--axa-soft-border);
+  border-bottom: 1px solid var(--axa-soft-border);
+  padding: 12px 0;
+}
+
+/* Stale result warning text. */
+.uls-stale-warning {
+  color: #b45309;
+  font-size: 11px;
+  font-weight: 800;
+  margin: 8px 0 0;
+}
+
+/* Empty/unknown placeholder text. */
+.uls-not-available {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+/* Utility spacing below buttons. */
+.uls-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Animation similar to prototype fade-in. */
+.uls-fade-in {
+  animation: ulsFadeIn 0.35s ease-out;
+}
+
+/* Fade-in keyframes. */
+@keyframes ulsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Flash animation for updated values. */
+.uls-value-flash {
+  animation: ulsFlashBlue 0.6s ease-out;
+}
+
+/* Flash keyframes. */
+@keyframes ulsFlashBlue {
+  0% {
+    background-color: rgba(0, 0, 143, 0.15);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Responsive layout for tablets and smaller screens. */
+@media (max-width: 1024px) {
+  .uls-sidebar {
+    display: none;
+  }
+
+  .uls-step-two-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .uls-scenario-card {
+    position: static;
+  }
+
+  .uls-two-column-grid,
+  .uls-goal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .uls-customer-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .uls-summary-metrics {
+    text-align: left;
+  }
+}
+
+/* Responsive layout for phones. */
+@media (max-width: 640px) {
+  .uls-topbar {
+    padding: 0 16px;
+  }
+
+  .uls-topbar-user {
+    display: none;
+  }
+
+  .uls-topbar-title {
+    font-size: 11px;
+  }
+
+  .uls-workspace {
+    padding: 16px;
+  }
+
+  .uls-policy-input-row {
+    flex-direction: column;
+  }
+
+  .uls-button-primary {
+    width: 100%;
+    padding: 12px 18px;
+  }
+
+  .uls-stepper-list {
+    overflow-x: auto;
+  }
+
+  .uls-stepper-item {
+    min-width: 110px;
+  }
+
+  .uls-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Goal section rebuilt as separate calculation cards. */
+.uls-goal-section {
+  background: transparent;
+  grid-column: 1 / -1;
+}
+
+/* Goal section header. */
+.uls-goal-section-header {
+  margin-bottom: 16px;
+}
+
+/* Goal section subtitle. */
+.uls-goal-section-subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Separate card grid for goal components. */
+.uls-goal-components-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Individual calculation card. */
+.uls-goal-component-card {
+  background: #ffffff;
+  border: 1px solid var(--axa-border);
+  border-top: 4px solid var(--axa-blue);
+  border-radius: 12px;
+  box-shadow: var(--axa-card-shadow);
+  padding: 24px;
+}
+
+/* Wide calculation card. */
+.uls-goal-component-card-wide {
+  grid-column: auto;
+}
+
+/* Component title row. */
+.uls-goal-component-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+/* Component number bubble. */
+.uls-goal-component-number {
+  background: var(--axa-blue);
+  border-radius: 999px;
+  color: #ffffff;
+  flex: 0 0 32px;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+/* Component card title. */
+.uls-goal-component-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* Component helper. */
+.uls-goal-component-helper {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+/* Result strip inside component cards. */
+.uls-goal-result-strip {
+  background: #f8fafc;
+  border: 1px solid var(--axa-soft-border);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+/* Result strip label. */
+.uls-goal-result-label {
+  color: #64748b;
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+/* Monthly premium card grid. */
+.uls-goal-monthly-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Result panel for monthly premium card. */
+.uls-goal-result-panel {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  color: var(--axa-blue);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px;
+}
+
+.uls-goal-result-panel strong {
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+/* Better responsive behavior for the new goal cards. */
+@media (max-width: 1200px) {
+  .uls-goal-components-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .uls-goal-monthly-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .uls-goal-component-card-wide {
+    grid-column: auto;
+  }
 }

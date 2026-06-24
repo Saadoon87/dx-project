@@ -106,6 +106,52 @@ export default class UlsCalculator extends LightningElement {
     return this.policyData !== null;
   }
 
+  get displayInvestmentFunds() {
+    const funds = this.policyData?.investmentFunds;
+
+    if (!Array.isArray(funds)) {
+      return [];
+    }
+
+    return funds.map((fund, index) => {
+      const allocation =
+        fund.allocationPercentage !== null &&
+        fund.allocationPercentage !== undefined
+          ? `${fund.allocationPercentage}%`
+          : "--";
+
+      return {
+        key: `${fund.fundId || fund.fundName || "fund"}-${index}`,
+        fundName: this.getSafeValue(fund.fundName, "Fund not available"),
+        allocationPercentage: allocation
+      };
+    });
+  }
+
+  get hasInvestmentFunds() {
+    return this.displayInvestmentFunds.length > 0;
+  }
+
+  get displayBenefits() {
+    const benefits = this.policyData?.benefits;
+
+    if (!Array.isArray(benefits)) {
+      return [];
+    }
+
+    return benefits.map((benefit, index) => {
+      return {
+        key: `${benefit.name || "benefit"}-${index}`,
+        name: this.getSafeValue(benefit.name, "Benefit"),
+        amount: this.formatCurrency(benefit.amount)
+      };
+    });
+  }
+
+  get hasBenefits() {
+    return this.displayBenefits.length > 0;
+  }
+
   // Disables Retrieve while loading or when policy number is blank.
   get isRetrieveDisabled() {
     return (
@@ -683,6 +729,28 @@ export default class UlsCalculator extends LightningElement {
   }
 
   // Clears the current error from the screen.
+  handleResetCalculator() {
+    this.currentStep = 1;
+    this.policyNumber = "";
+    this.policyData = null;
+    this.inflationRateData = null;
+    this.isLoading = false;
+    this.loadingMessage = "";
+    this.errorState = null;
+
+    this.goalData = {
+      initialTargetUav: null,
+      requestedFinalUav: null,
+      requestedMonthlyPremium: null,
+      inflationAdjustedUavResult: null,
+      suggestedPremiumResult: null,
+      finalUavResult: null,
+      isInflationAdjustedUavStale: false,
+      isSuggestedPremiumStale: false,
+      isFinalUavStale: false
+    };
+  }
+
   clearError() {
     this.errorState = null;
   }

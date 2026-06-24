@@ -68,6 +68,14 @@ public with sharing class UlsCalculatorDto {
     @AuraEnabled
     public String policyNumber { get; set; }
 
+    // Product name returned by backend.
+    @AuraEnabled
+    public String productName { get; set; }
+
+    // Policy issuance date returned by backend.
+    @AuraEnabled
+    public String issuanceDate { get; set; }
+
     // Policy maturity date as a string to avoid date-format assumptions.
     @AuraEnabled
     public String maturityDate { get; set; }
@@ -103,6 +111,18 @@ public with sharing class UlsCalculatorDto {
     // Age/gender display value if returned by backend.
     @AuraEnabled
     public String ageGender { get; set; }
+
+    // Life insured age shown separately in the AXA-aligned Step 2 UI.
+    @AuraEnabled
+    public Integer lifeInsuredAge { get; set; }
+
+    // Life insured gender shown separately in the AXA-aligned Step 2 UI.
+    @AuraEnabled
+    public String lifeInsuredGender { get; set; }
+
+    // Life insured DOB shown separately in the AXA-aligned Step 2 UI.
+    @AuraEnabled
+    public String lifeInsuredDOB { get; set; }
 
     // Insured DOB as a string to avoid date-format assumptions.
     @AuraEnabled
@@ -179,6 +199,12 @@ public with sharing class UlsCalculatorDto {
     // Policy number returned by backend.
     public String policyNumber;
 
+    // Product name returned by backend.
+    public String productName;
+
+    // Issuance date returned by backend.
+    public String issuanceDate;
+
     // Maturity date returned by backend.
     public String maturityDate;
 
@@ -215,17 +241,34 @@ public with sharing class UlsCalculatorDto {
     // Backend may send life insured gender separately.
     public String lifeInsuredGender;
 
-    // Backend may send child DOB if applicable.
+    // Backend may send nominated child DOB if applicable.
+    public String nominatedChildDOB;
+
+    // Older/alternate child DOB field name if backend sends it.
     public String childDOB;
 
     // Investment strategy returned by backend.
     public String investmentStrategy;
 
     // Benefits returned by backend.
-    public List<Benefit> benefits;
+    public List<BackendBenefit> benefits;
 
     // Backend investment fund allocation list.
     public List<BackendInvestmentFund> investmentFunds;
+  }
+
+  /**
+   * Raw backend benefit item.
+   */
+  public class BackendBenefit {
+    // Benefit name returned by backend.
+    public String benefitName;
+
+    // Total sum insured returned by backend.
+    public Decimal totalSumInsured;
+
+    // Optional description if backend sends it.
+    public String description;
   }
 
   /**
@@ -247,7 +290,10 @@ public with sharing class UlsCalculatorDto {
     // Arabic display name.
     public String nameAr;
 
-    // Allocation percentage.
+    // Allocation percentage returned by retrieve-policy API.
+    public Decimal percentage;
+
+    // Alternate allocation percentage field name.
     public Decimal allocationPercentage;
 
     // Current fund value.

@@ -56,6 +56,7 @@ jest.mock(
 
 // Allows pending Promise callbacks and LWC rendering to finish.
 const flushPromises = () => Promise.resolve().then(() => Promise.resolve());
+
 function createComponent() {
   const element = createElement("c-uls-calculator", {
     is: UlsCalculator
@@ -66,6 +67,10 @@ function createComponent() {
   return element;
 }
 
+function normalizeText(value) {
+  return (value || "").replace(/\s+/g, " ").trim();
+}
+
 function getLightningInputByName(element, inputName) {
   return [...element.shadowRoot.querySelectorAll("lightning-input")].find(
     (input) => {
@@ -74,12 +79,10 @@ function getLightningInputByName(element, inputName) {
   );
 }
 
-function getLightningButtonByLabel(element, label) {
-  return [...element.shadowRoot.querySelectorAll("lightning-button")].find(
-    (button) => {
-      return button.label === label;
-    }
-  );
+function getNativeButtonByText(element, label) {
+  return [...element.shadowRoot.querySelectorAll("button")].find((button) => {
+    return normalizeText(button.textContent).includes(label);
+  });
 }
 
 function changeLightningInput(input, value) {
@@ -98,10 +101,30 @@ async function moveToStep2WithSuccessfulRetrieve(element) {
     data: {
       policyNumber: "POL12345",
       customerName: "Test Customer",
+      lifeInsuredName: "Test Customer",
+      lifeInsuredAge: 45,
+      lifeInsuredGender: "Male",
+      lifeInsuredDOB: "1981-01-01",
       maturityDate: "2036-12-31",
       currentPremium: 1000,
       currentUav: 50000,
-      missedPremiums: 0
+      missedPremiums: 0,
+      investmentFunds: [
+        {
+          fundName: "Active",
+          allocationPercentage: 100
+        }
+      ],
+      benefits: [
+        {
+          name: "Accidental Death Insurance",
+          amount: 450000
+        },
+        {
+          name: "Critical Illness Insurance",
+          amount: 225000
+        }
+      ]
     },
     errorCode: null,
     userMessage: null,
@@ -113,7 +136,7 @@ async function moveToStep2WithSuccessfulRetrieve(element) {
 
   await flushPromises();
 
-  const retrieveButton = getLightningButtonByLabel(element, "Retrieve Policy");
+  const retrieveButton = getNativeButtonByText(element, "Retrieve");
   retrieveButton.click();
 
   await flushPromises();
@@ -133,28 +156,27 @@ describe("c-uls-calculator", () => {
     const element = createComponent();
 
     const policyInput = getLightningInputByName(element, "policyNumber");
+    const pageText = element.shadowRoot.textContent;
 
-    expect(element.shadowRoot.textContent).toContain("ULS Calculator");
-    expect(element.shadowRoot.textContent).toContain(
-      "Step 1: Policy Retrieval"
-    );
+    expect(pageText).toContain("AXA");
+    expect(pageText).toContain("Egypt | ULS Upselling Calculator");
+    expect(pageText).toContain("Policy Retrieval");
+    expect(pageText).toContain("Retrieve Policy");
+    expect(pageText).toContain("Define Goal");
     expect(policyInput).not.toBeUndefined();
     expect(policyInput.label).toBe("Policy Number");
   });
 
-  it("keeps Retrieve Policy disabled when policy number is blank", () => {
+  it("keeps Retrieve disabled when policy number is blank", () => {
     const element = createComponent();
 
-    const retrieveButton = getLightningButtonByLabel(
-      element,
-      "Retrieve Policy"
-    );
+    const retrieveButton = getNativeButtonByText(element, "Retrieve");
 
     expect(retrieveButton).not.toBeUndefined();
     expect(retrieveButton.disabled).toBe(true);
   });
 
-  it("enables Retrieve Policy after policy number input", async () => {
+  it("enables Retrieve after policy number input", async () => {
     const element = createComponent();
 
     const policyInput = getLightningInputByName(element, "policyNumber");
@@ -162,10 +184,7 @@ describe("c-uls-calculator", () => {
 
     await flushPromises();
 
-    const retrieveButton = getLightningButtonByLabel(
-      element,
-      "Retrieve Policy"
-    );
+    const retrieveButton = getNativeButtonByText(element, "Retrieve");
 
     expect(retrieveButton.disabled).toBe(false);
   });
@@ -175,16 +194,18 @@ describe("c-uls-calculator", () => {
 
     await moveToStep2WithSuccessfulRetrieve(element);
 
+    const pageText = element.shadowRoot.textContent;
+
     expect(retrievePolicy).toHaveBeenCalledWith({
       policyNumber: "POL12345"
     });
 
-    expect(element.shadowRoot.textContent).toContain("Step 2: Define Goal");
-    expect(element.shadowRoot.textContent).toContain(
-      "Retrieved Policy Summary"
-    );
-    expect(element.shadowRoot.textContent).toContain("Test Customer");
-    expect(element.shadowRoot.textContent).toContain("50,000.00");
+    expect(pageText).toContain("Goal-Based Target Definition");
+    expect(pageText).toContain("Retrieved Customer and Policy Data");
+    expect(pageText).toContain("Scenario Analysis");
+    expect(pageText).toContain("Test Customer");
+    expect(pageText).toContain("POL12345");
+    expect(pageText).toContain("50,000.00");
   });
 
   it("displays safe backend/business error message and correlation ID", async () => {
@@ -204,23 +225,20 @@ describe("c-uls-calculator", () => {
 
     await flushPromises();
 
-    const retrieveButton = getLightningButtonByLabel(
-      element,
-      "Retrieve Policy"
-    );
+    const retrieveButton = getNativeButtonByText(element, "Retrieve");
     retrieveButton.click();
 
     await flushPromises();
     await flushPromises();
 
-    expect(element.shadowRoot.textContent).toContain(
-      "We could not complete this action"
-    );
-    expect(element.shadowRoot.textContent).toContain(
+    const pageText = element.shadowRoot.textContent;
+
+    expect(pageText).toContain("We could not complete this action");
+    expect(pageText).toContain(
       "Policy not found. Please check the policy number and try again."
     );
-    expect(element.shadowRoot.textContent).toContain("POLICY_NOT_FOUND");
-    expect(element.shadowRoot.textContent).toContain("TEST-CORR-ERROR-001");
+    expect(pageText).toContain("POLICY_NOT_FOUND");
+    expect(pageText).toContain("TEST-CORR-ERROR-001");
   });
 
   it("enables Step 2 calculation buttons when positive numeric inputs are entered", async () => {
@@ -244,14 +262,14 @@ describe("c-uls-calculator", () => {
     await flushPromises();
 
     expect(
-      getLightningButtonByLabel(element, "Calculate Inflation-Adjusted UAV")
+      getNativeButtonByText(element, "Calculate Inflation-Adjusted UAV")
         .disabled
     ).toBe(false);
     expect(
-      getLightningButtonByLabel(element, "Calculate Suggested Premium").disabled
+      getNativeButtonByText(element, "Calculate Suggested Premium").disabled
     ).toBe(false);
     expect(
-      getLightningButtonByLabel(element, "Recalculate Final UAV").disabled
+      getNativeButtonByText(element, "Recalculate Final UAV").disabled
     ).toBe(false);
   });
 
@@ -282,7 +300,7 @@ describe("c-uls-calculator", () => {
 
     await flushPromises();
 
-    const calculateButton = getLightningButtonByLabel(
+    const calculateButton = getNativeButtonByText(
       element,
       "Calculate Inflation-Adjusted UAV"
     );
@@ -293,7 +311,7 @@ describe("c-uls-calculator", () => {
 
     expect(element.shadowRoot.textContent).toContain("162889.46");
     expect(element.shadowRoot.textContent).not.toContain(
-      "One or more inputs changed after calculation. Please recalculate before continuing."
+      "Input changed. Please recalculate this result."
     );
 
     changeLightningInput(initialTargetInput, "110000");
@@ -301,7 +319,7 @@ describe("c-uls-calculator", () => {
     await flushPromises();
 
     expect(element.shadowRoot.textContent).toContain(
-      "One or more inputs changed after calculation. Please recalculate before continuing."
+      "Input changed. Please recalculate this result."
     );
   });
 
@@ -320,33 +338,35 @@ describe("c-uls-calculator", () => {
 
     await flushPromises();
 
-    const retrieveButton = getLightningButtonByLabel(
-      element,
-      "Retrieve Policy"
-    );
+    const retrieveButton = getNativeButtonByText(element, "Retrieve");
     retrieveButton.click();
 
     await flushPromises();
     await flushPromises();
 
-    expect(element.shadowRoot.textContent).toContain(
+    const pageText = element.shadowRoot.textContent;
+
+    expect(pageText).toContain(
       "Something went wrong while processing your request. Please try again or contact support."
     );
-    expect(element.shadowRoot.textContent).toContain("UNEXPECTED_CLIENT_ERROR");
-    expect(element.shadowRoot.textContent).not.toContain(
-      "Raw Apex stack trace"
-    );
+    expect(pageText).toContain("UNEXPECTED_CLIENT_ERROR");
+    expect(pageText).not.toContain("Raw Apex stack trace");
   });
 
-  it("keeps Next disabled on Step 2 because Step 3 is not implemented yet", async () => {
+  it("keeps Apply Alterations disabled because Step 3 is not implemented yet", async () => {
     const element = createComponent();
 
     await moveToStep2WithSuccessfulRetrieve(element);
 
-    const nextButton = getLightningButtonByLabel(element, "Next");
+    const applyAlterationsButton = getNativeButtonByText(
+      element,
+      "Apply Alterations"
+    );
 
-    expect(nextButton).not.toBeUndefined();
-    expect(nextButton.disabled).toBe(true);
-    expect(element.shadowRoot.textContent).toContain("Step 2: Define Goal");
+    expect(applyAlterationsButton).not.toBeUndefined();
+    expect(applyAlterationsButton.disabled).toBe(true);
+    expect(element.shadowRoot.textContent).toContain(
+      "Goal-Based Target Definition"
+    );
   });
 });

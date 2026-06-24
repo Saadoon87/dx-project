@@ -1060,6 +1060,8 @@ public with sharing class UlsCalculatorService {
     UlsCalculatorDto.PolicyResponse uiPolicy = new UlsCalculatorDto.PolicyResponse();
 
     uiPolicy.policyNumber = backendPolicy.policyNumber;
+    uiPolicy.productName = backendPolicy.productName;
+    uiPolicy.issuanceDate = backendPolicy.issuanceDate;
     uiPolicy.maturityDate = backendPolicy.maturityDate;
     uiPolicy.frequency = backendPolicy.frequency;
     uiPolicy.initialPremium = backendPolicy.initialPremium;
@@ -1086,17 +1088,59 @@ public with sharing class UlsCalculatorService {
       backendPolicy.lifeInsuredGender
     );
 
-    // Backend may use lifeInsuredDOB, while the UI DTO uses insuredDob.
-    uiPolicy.insuredDob = backendPolicy.lifeInsuredDOB;
+    // Also expose age and gender separately because the AXA-aligned Step 2 UI
+    // displays them in separate rows.
+    uiPolicy.lifeInsuredAge = backendPolicy.lifeInsuredAge;
+    uiPolicy.lifeInsuredGender = backendPolicy.lifeInsuredGender;
 
-    uiPolicy.childDob = backendPolicy.childDOB;
+    // Keep existing normalized DOB fields.
+    uiPolicy.insuredDob = backendPolicy.lifeInsuredDOB;
+    uiPolicy.childDob = firstNonBlank(
+      new List<String>{
+        backendPolicy.nominatedChildDOB,
+        backendPolicy.childDOB
+      }
+    );
+
+    // Also expose backend-style life insured DOB because the AXA-aligned Step 2 UI
+    // reads this property directly.
+    uiPolicy.lifeInsuredDOB = backendPolicy.lifeInsuredDOB;
     uiPolicy.investmentStrategy = backendPolicy.investmentStrategy;
-    uiPolicy.benefits = backendPolicy.benefits;
+    uiPolicy.benefits = mapBackendBenefitsToUi(backendPolicy.benefits);
     uiPolicy.investmentFunds = mapBackendInvestmentFundsToUi(
       backendPolicy.investmentFunds
     );
 
     return uiPolicy;
+  }
+
+  /**
+   * Maps backend benefits into UI-safe benefit DTOs.
+   */
+  private static List<UlsCalculatorDto.Benefit> mapBackendBenefitsToUi(
+    List<UlsCalculatorDto.BackendBenefit> backendBenefits
+  ) {
+    List<UlsCalculatorDto.Benefit> uiBenefits = new List<UlsCalculatorDto.Benefit>();
+
+    if (backendBenefits == null) {
+      return uiBenefits;
+    }
+
+    for (UlsCalculatorDto.BackendBenefit backendBenefit : backendBenefits) {
+      if (backendBenefit == null) {
+        continue;
+      }
+
+      UlsCalculatorDto.Benefit uiBenefit = new UlsCalculatorDto.Benefit();
+
+      uiBenefit.name = backendBenefit.benefitName;
+      uiBenefit.amount = backendBenefit.totalSumInsured;
+      uiBenefit.description = backendBenefit.description;
+
+      uiBenefits.add(uiBenefit);
+    }
+
+    return uiBenefits;
   }
 
   /**
@@ -1132,7 +1176,9 @@ public with sharing class UlsCalculatorService {
         }
       );
 
-      uiFund.allocationPercentage = backendFund.allocationPercentage;
+      uiFund.allocationPercentage = backendFund.allocationPercentage != null
+        ? backendFund.allocationPercentage
+        : backendFund.percentage;
       uiFund.currentValue = backendFund.currentValue;
 
       uiFunds.add(uiFund);
