@@ -32,7 +32,7 @@ public with sharing class UlsCalculatorService {
    *
    * These are based on the uploaded API definition and confirmed project decisions.
    */
-  private static final String GET_POLICY = '/api/v1/policies/{policyNumber}';
+  private static final String GET_POLICY = '/policy-management/policy/summary/{policyNumber}';
   private static final String GET_INFLATION_RATE = '/api/v1/calculator/inflation-rate';
   private static final String POST_INFLATION_ADJUSTED_UAV = '/api/v1/calculator/inflation-adjusted-uav';
   private static final String POST_SUGGESTED_PREMIUM = '/api/v1/calculator/suggested-premium';
@@ -830,7 +830,6 @@ public with sharing class UlsCalculatorService {
     request.setMethod(httpMethod);
     request.setTimeout(config.timeoutMs);
     request.setHeader('Accept', 'application/json');
-    request.setHeader('X-Correlation-Id', correlationId);
 
     if (httpMethod == 'POST') {
       request.setHeader('Content-Type', 'application/json');
