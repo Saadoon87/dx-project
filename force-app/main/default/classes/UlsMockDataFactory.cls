@@ -177,4 +177,38 @@ public class UlsMockDataFactory {
       UlsCalculatorDto.FinalPdfRequest.class
     );
   }
+  /**
+   * Mock response for GET funds/options.
+   */
+  public static String fundsSuccessJson() {
+    Map<String, Object> fundOne = new Map<String, Object>();
+    fundOne.put('fundId', 'FUND-ACTIVE');
+    fundOne.put('fundCode', 'ACTIVE');
+    fundOne.put('fundName', 'Active Fund');
+    fundOne.put('lowReturnRate', 3.5);
+    fundOne.put('highReturnRate', 7.5);
+
+    Map<String, Object> fundTwo = new Map<String, Object>();
+    fundTwo.put('fundCode', 'BALANCED');
+    fundTwo.put('nameEn', 'Balanced Fund');
+    fundTwo.put('lowReturnRate', 2.5);
+    fundTwo.put('highReturnRate', 6.0);
+
+    Map<String, Object> responseBody = new Map<String, Object>();
+    responseBody.put('funds', new List<Object>{ fundOne, fundTwo });
+
+    return JSON.serialize(responseBody);
+  }
+
+  /**
+   * Mock response for GET valid term extension options.
+   */
+  public static String termExtensionOptionsSuccessJson() {
+    Map<String, Object> responseBody = new Map<String, Object>();
+
+    responseBody.put('policyNumber', DEFAULT_POLICY_NUMBER);
+    responseBody.put('availableExtensions', new List<Integer>{ 5, 10, 15 });
+
+    return JSON.serialize(responseBody);
+  }
 }
