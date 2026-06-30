@@ -38,7 +38,7 @@ public with sharing class UlsCalculatorService {
   private static final String POST_SUGGESTED_PREMIUM = '/api/v1/calculator/suggested-premium';
   private static final String POST_FINAL_UAV = '/api/v1/calculator/final-uav';
   private static final String GET_FUNDS = '/lookups-svc/lookups/investment-funds-and-rates?currencyId=16';
-  private static final String GET_TERM_EXTENSION_OPTIONS = '/api/v1/policies/{policyNumber}/term-extension-options';
+  private static final String GET_TERM_EXTENSION_OPTIONS = '/policy-management/policy/term-extension-options/{policyNumber}';
   private static final String POST_PROJECTION = '/api/v1/calculator/projection';
   private static final String POST_PROJECTION_PDF = '/api/v1/documents/projection-pdf';
   private static final String GET_ATTACHMENTS = '/api/v1/documents/attachments';

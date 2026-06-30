@@ -134,6 +134,56 @@
                 </div>
               </div>
             </template>
+
+            <!-- Stepper state when user is on Step 3. -->
+            <template if:true={isStep3}>
+              <div class="uls-stepper-list">
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number uls-step-number-active">1</div>
+                    <div class="uls-step-label uls-step-label-active">
+                      Retrieve Policy
+                    </div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number uls-step-number-active">2</div>
+                    <div class="uls-step-label uls-step-label-active">
+                      Define Goal
+                    </div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number uls-step-number-active">3</div>
+                    <div class="uls-step-label uls-step-label-active">
+                      Apply Alterations
+                    </div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">4</div>
+                    <div class="uls-step-label">View Projections</div>
+                  </div>
+                  <div class="uls-step-line"></div>
+                </div>
+
+                <div class="uls-stepper-item">
+                  <div class="uls-stepper-content">
+                    <div class="uls-step-number">5</div>
+                    <div class="uls-step-label">Generate Package</div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </section>
 
           <!-- Shared loading message area. -->
@@ -507,12 +557,12 @@
                     <span>{displayProjectedFinalUav}</span>
                   </div>
 
-                  <!-- Step 3 is intentionally blocked until approved. -->
+                  <!-- Moves the user from Step 2 into Step 3: Apply Alterations. -->
                   <button
                     class="uls-button-red"
                     type="button"
-                    disabled
-                    title="Step 3 is not implemented yet."
+                    onclick={handleApplyAlterations}
+                    disabled={isApplyAlterationsDisabled}
                   >
                     Apply Alterations →
                   </button>
@@ -753,6 +803,442 @@
                   </article>
                 </div>
               </section>
+            </section>
+          </template>
+
+          <!-- Step 3: Apply Alterations Content. -->
+          <template if:true={isStep3}>
+            <section
+              class="uls-goal-section uls-fade-in"
+              data-testid="step-3-apply-alterations"
+            >
+              <div class="uls-goal-section-header">
+                <h2 class="uls-goal-title">Apply Alterations</h2>
+                <p class="uls-goal-section-subtitle">
+                  Apply the approved alteration components before generating the
+                  consolidated projection review.
+                </p>
+              </div>
+
+              <!-- Actuarial orchestration banner. -->
+              <section class="uls-card uls-card-highlight">
+                <div class="uls-data-card-header">
+                  <h3 class="uls-section-title">Actuarial Orchestration</h3>
+                  <span class="uls-pill">Step 3</span>
+                </div>
+
+                <p class="uls-retrieval-subtitle">
+                  1. Premium Change → 2. Switch → 3. ASP → 4. Redirection → 5.
+                  Increase Term
+                </p>
+              </section>
+
+              <!-- 1. Regular Premium Change. -->
+              <article class="uls-card">
+                <div class="uls-data-card-header">
+                  <h3 class="uls-section-title">1. Regular Premium Change</h3>
+                  <span class="uls-pill">Active Scenario</span>
+                </div>
+
+                <div class="uls-two-column-grid">
+                  <div class="uls-data-soft-section">
+                    <h4 class="uls-data-block-title">
+                      Current Monthly Premium
+                    </h4>
+                    <p class="uls-customer-name">{displayCurrentPremium}</p>
+                  </div>
+
+                  <div class="uls-data-soft-section">
+                    <h4 class="uls-data-block-title">New Requested Premium</h4>
+
+                    <div class="uls-currency-row">
+                      <span class="uls-currency-prefix">EGP</span>
+
+                      <lightning-input
+                        class="uls-large-input"
+                        variant="label-hidden"
+                        label="New Requested Premium"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={alterationData.requestedMonthlyPremium}
+                        onchange={handleAlterationRequestedPremiumChange}
+                        disabled={isLoading}
+                        message-when-range-underflow="Amount cannot be less than zero."
+                        message-when-bad-input="Please enter a valid number."
+                      >
+                      </lightning-input>
+                    </div>
+
+                    <p class="uls-goal-component-helper">
+                      Current selected value:
+                      {displayAlterationRequestedPremium}
+                    </p>
+                  </div>
+                </div>
+              </article>
+
+              <!-- 2. Fund Switching. -->
+              <article class="uls-card">
+                <div class="uls-data-card-header">
+                  <div>
+                    <h3 class="uls-section-title">
+                      2. Fund Switching (UAV Balance)
+                    </h3>
+                    <p class="uls-goal-component-helper">
+                      Reallocate the existing UAV balance across available
+                      funds.
+                    </p>
+                  </div>
+
+                  <label class="uls-detail-value">
+                    <input
+                      type="checkbox"
+                      checked={alterationData.fundSwitchEnabled}
+                      onchange={handleFundSwitchToggle}
+                      disabled={isLoading}
+                    />
+                    Enable
+                  </label>
+                </div>
+
+                <template if:true={alterationData.fundSwitchEnabled}>
+                  <template if:true={hasAvailableFunds}>
+                    <div class="uls-allocation-list">
+                      <template
+                        for:each={alterationData.fundSwitchRows}
+                        for:item="row"
+                      >
+                        <div key={row.key} class="uls-allocation-row">
+                          <select
+                            class="uls-large-input"
+                            data-key={row.key}
+                            value={row.fundId}
+                            onchange={handleFundSwitchFundChange}
+                            disabled={isLoading}
+                          >
+                            <template
+                              for:each={displayAvailableFunds}
+                              for:item="fund"
+                            >
+                              <option key={fund.key} value={fund.value}>
+                                {fund.label}
+                              </option>
+                            </template>
+                          </select>
+
+                          <lightning-input
+                            class="uls-large-input"
+                            data-key={row.key}
+                            variant="label-hidden"
+                            label="Allocation Percentage"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={row.allocationPercentage}
+                            onchange={handleFundSwitchAllocationChange}
+                            disabled={isLoading}
+                            message-when-range-underflow="Percentage cannot be less than zero."
+                            message-when-range-overflow="Percentage cannot be more than 100."
+                          >
+                          </lightning-input>
+
+                          <button
+                            class="uls-button-secondary"
+                            type="button"
+                            data-key={row.key}
+                            onclick={handleRemoveFundSwitchRow}
+                            disabled={isLoading}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </template>
+                    </div>
+
+                    <div class="uls-button-row">
+                      <button
+                        class="uls-button-secondary"
+                        type="button"
+                        onclick={handleAddFundSwitchRow}
+                        disabled={isLoading}
+                      >
+                        + Add Row
+                      </button>
+
+                      <span class={fundSwitchTotalClass}>
+                        Total: {fundSwitchTotal}%
+                      </span>
+                    </div>
+                  </template>
+
+                  <template if:false={hasAvailableFunds}>
+                    <p class="uls-not-available">
+                      No available funds were loaded. Please try again or
+                      contact support.
+                    </p>
+                  </template>
+                </template>
+              </article>
+
+              <!-- 3. Additional Single Premium. -->
+              <article class="uls-card">
+                <div class="uls-data-card-header">
+                  <div>
+                    <h3 class="uls-section-title">
+                      3. Additional Single Premium (ASP)
+                    </h3>
+                    <p class="uls-goal-component-helper">
+                      Add a single premium and select the target fund.
+                    </p>
+                  </div>
+
+                  <label class="uls-detail-value">
+                    <input
+                      type="checkbox"
+                      checked={alterationData.aspEnabled}
+                      onchange={handleAspToggle}
+                      disabled={isLoading}
+                    />
+                    Enable
+                  </label>
+                </div>
+
+                <template if:true={alterationData.aspEnabled}>
+                  <div class="uls-two-column-grid">
+                    <div>
+                      <label class="uls-goal-label">Investment Amount</label>
+
+                      <div class="uls-currency-row">
+                        <span class="uls-currency-prefix">EGP</span>
+
+                        <lightning-input
+                          class="uls-large-input"
+                          variant="label-hidden"
+                          label="ASP Amount"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={alterationData.aspAmount}
+                          onchange={handleAspAmountChange}
+                          disabled={isLoading}
+                        >
+                        </lightning-input>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="uls-goal-label"
+                        >Allocation Target Fund</label
+                      >
+
+                      <select
+                        class="uls-large-input"
+                        value={alterationData.aspFundId}
+                        onchange={handleAspFundChange}
+                        disabled={isLoading}
+                      >
+                        <template
+                          for:each={displayAvailableFunds}
+                          for:item="fund"
+                        >
+                          <option key={fund.key} value={fund.value}>
+                            {fund.label}
+                          </option>
+                        </template>
+                      </select>
+                    </div>
+                  </div>
+                </template>
+              </article>
+
+              <!-- 4. Future Premium Redirection. -->
+              <article class="uls-card">
+                <div class="uls-data-card-header">
+                  <div>
+                    <h3 class="uls-section-title">
+                      4. Future Premium Redirection
+                    </h3>
+                    <p class="uls-goal-component-helper">
+                      Redirect future premiums across selected funds.
+                    </p>
+                  </div>
+
+                  <label class="uls-detail-value">
+                    <input
+                      type="checkbox"
+                      checked={alterationData.redirectionEnabled}
+                      onchange={handleRedirectionToggle}
+                      disabled={isLoading}
+                    />
+                    Enable
+                  </label>
+                </div>
+
+                <template if:true={alterationData.redirectionEnabled}>
+                  <template if:true={hasAvailableFunds}>
+                    <div class="uls-allocation-list">
+                      <template
+                        for:each={alterationData.redirectionRows}
+                        for:item="row"
+                      >
+                        <div key={row.key} class="uls-allocation-row">
+                          <select
+                            class="uls-large-input"
+                            data-key={row.key}
+                            value={row.fundId}
+                            onchange={handleRedirectionFundChange}
+                            disabled={isLoading}
+                          >
+                            <template
+                              for:each={displayAvailableFunds}
+                              for:item="fund"
+                            >
+                              <option key={fund.key} value={fund.value}>
+                                {fund.label}
+                              </option>
+                            </template>
+                          </select>
+
+                          <lightning-input
+                            class="uls-large-input"
+                            data-key={row.key}
+                            variant="label-hidden"
+                            label="Redirection Percentage"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={row.allocationPercentage}
+                            onchange={handleRedirectionAllocationChange}
+                            disabled={isLoading}
+                          >
+                          </lightning-input>
+
+                          <button
+                            class="uls-button-secondary"
+                            type="button"
+                            data-key={row.key}
+                            onclick={handleRemoveRedirectionRow}
+                            disabled={isLoading}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </template>
+                    </div>
+
+                    <div class="uls-button-row">
+                      <button
+                        class="uls-button-secondary"
+                        type="button"
+                        onclick={handleAddRedirectionRow}
+                        disabled={isLoading}
+                      >
+                        + Add Redirected Fund
+                      </button>
+
+                      <span class={redirectionTotalClass}>
+                        Total: {redirectionTotal}%
+                      </span>
+                    </div>
+                  </template>
+
+                  <template if:false={hasAvailableFunds}>
+                    <p class="uls-not-available">
+                      No available funds were loaded. Please try again or
+                      contact support.
+                    </p>
+                  </template>
+                </template>
+              </article>
+
+              <!-- 5. Increase ULS Term. -->
+              <article class="uls-card">
+                <div class="uls-data-card-header">
+                  <div>
+                    <h3 class="uls-section-title">5. Increase ULS Term</h3>
+                    <p class="uls-goal-component-helper">
+                      Select additional years before projection generation.
+                    </p>
+                  </div>
+
+                  <label class="uls-detail-value">
+                    <input
+                      type="checkbox"
+                      checked={alterationData.termExtensionEnabled}
+                      onchange={handleTermExtensionToggle}
+                      disabled={isLoading}
+                    />
+                    Enable
+                  </label>
+                </div>
+
+                <template if:true={alterationData.termExtensionEnabled}>
+                  <div class="uls-two-column-grid">
+                    <div>
+                      <label class="uls-goal-label">Add Extension Years</label>
+
+                      <template if:true={hasTermExtensionOptions}>
+                        <select
+                          class="uls-large-input"
+                          value={alterationData.termExtensionYears}
+                          onchange={handleTermExtensionYearsChange}
+                          disabled={isLoading}
+                        >
+                          <template
+                            for:each={displayTermExtensionOptions}
+                            for:item="option"
+                          >
+                            <option key={option.key} value={option.value}>
+                              {option.label}
+                            </option>
+                          </template>
+                        </select>
+                      </template>
+
+                      <template if:false={hasTermExtensionOptions}>
+                        <p class="uls-not-available">
+                          No term extension options were loaded. Please try
+                          again or contact support.
+                        </p>
+                      </template>
+                    </div>
+
+                    <div class="uls-data-soft-section">
+                      <h4 class="uls-data-block-title">
+                        Current Maturity Date
+                      </h4>
+                      <p class="uls-detail-value">{displayMaturityDate}</p>
+
+                      <h4 class="uls-data-block-title">Selected Extension</h4>
+                      <p class="uls-detail-value">
+                        {displaySelectedTermExtension}
+                      </p>
+                    </div>
+                  </div>
+                </template>
+              </article>
+
+              <div class="uls-button-row">
+                <button
+                  class="uls-button-secondary"
+                  type="button"
+                  onclick={handleBack}
+                >
+                  ← Back to Define Goal
+                </button>
+
+                <button
+                  class="uls-button-primary"
+                  type="button"
+                  disabled
+                  title="Step 4 is not implemented yet."
+                >
+                  Generate Consolidated Review →
+                </button>
+              </div>
             </section>
           </template>
         </div>

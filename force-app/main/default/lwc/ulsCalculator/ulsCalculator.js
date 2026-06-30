@@ -16,6 +16,12 @@ import calculateSuggestedPremium from "@salesforce/apex/UlsCalculatorController.
 // Import the Apex controller method used to calculate projected final UAV.
 import calculateFinalUav from "@salesforce/apex/UlsCalculatorController.calculateFinalUav";
 
+// Import the Apex controller method used to retrieve available funds for Step 3.
+import getFunds from "@salesforce/apex/UlsCalculatorController.getFunds";
+
+// Import the Apex controller method used to retrieve term extension options for Step 3.
+import getTermExtensionOptions from "@salesforce/apex/UlsCalculatorController.getTermExtensionOptions";
+
 // Main ULS Calculator component.
 export default class UlsCalculator extends LightningElement {
   // Tracks the active step in the guided workflow.
@@ -41,6 +47,33 @@ export default class UlsCalculator extends LightningElement {
     isInflationAdjustedUavStale: false,
     isSuggestedPremiumStale: false,
     isFinalUavStale: false
+  };
+
+  // Stores available fund options returned from Apex/backend for Step 3.
+  availableFunds = [];
+
+  // Stores term extension options returned from Apex/backend for Step 3.
+  termExtensionOptions = [];
+
+  // Stores the full term extension response if needed for future display.
+  termExtensionOptionsData = null;
+
+  // Generates unique row keys for dynamic fund allocation rows.
+  nextAlterationRowKey = 1;
+
+  // Stores Step 3 alteration input state.
+  alterationData = {
+    regularPremiumEnabled: true,
+    requestedMonthlyPremium: null,
+    fundSwitchEnabled: false,
+    fundSwitchRows: [],
+    aspEnabled: false,
+    aspAmount: null,
+    aspFundId: "",
+    redirectionEnabled: false,
+    redirectionRows: [],
+    termExtensionEnabled: false,
+    termExtensionYears: ""
   };
 
   // Tracks whether the component is currently waiting for an Apex/backend response.
@@ -179,6 +212,12 @@ export default class UlsCalculator extends LightningElement {
     );
   }
 
+  // Disables Apply Alterations only while an Apex/backend request is running.
+  // Step 3 is now activated, so this button should not depend on the old Next button guard.
+  get isApplyAlterationsDisabled() {
+    return this.isLoading;
+  }
+
   // Disables suggested premium calculation until the required input is entered.
   get isCalculateSuggestedPremiumDisabled() {
     return (
@@ -194,15 +233,16 @@ export default class UlsCalculator extends LightningElement {
     );
   }
 
-  // Disables Next while loading or when Step 2 has stale calculated results.
+  // Disables Next while loading or when the current step is not ready to continue.
   get isNextDisabled() {
-    // Step 3, Step 4, and Step 5 are intentionally blocked until they are implemented.
-    // This prevents users from accidentally proceeding into placeholder screens.
-    if (this.currentStep >= 2) {
+    // Step 4 and Step 5 are still intentionally blocked until they are implemented.
+    // Step 3 is now allowed because Apply Alterations is the next approved step.
+    if (this.currentStep >= 3) {
       return true;
     }
 
-    return this.isLoading || this.hasStaleGoalResults;
+    // Do not allow navigation while an Apex/backend request is running.
+    return this.isLoading;
   }
 
   // Returns true when one or more Step 2 calculated results are stale.
@@ -352,6 +392,105 @@ export default class UlsCalculator extends LightningElement {
       this.goalData.finalUavResult?.projectedFinalUAV,
       "Not calculated"
     );
+  }
+
+  // Returns available funds in a safe display shape for Step 3 dropdowns.
+  get displayAvailableFunds() {
+    if (!Array.isArray(this.availableFunds)) {
+      return [];
+    }
+
+    return this.availableFunds.map((fund, index) => {
+      const rateParts = [];
+
+      if (fund.lowerRate !== null && fund.lowerRate !== undefined) {
+        rateParts.push(`Low ${fund.lowerRate}%`);
+      }
+
+      if (fund.centralRate !== null && fund.centralRate !== undefined) {
+        rateParts.push(`Central ${fund.centralRate}%`);
+      }
+
+      if (fund.upperRate !== null && fund.upperRate !== undefined) {
+        rateParts.push(`High ${fund.upperRate}%`);
+      }
+
+      const rateLabel =
+        rateParts.length > 0 ? ` (${rateParts.join(" / ")})` : "";
+
+      return {
+        key: `${fund.fundId || fund.fundName || "fund"}-${index}`,
+        value: fund.fundId,
+        label: `${this.getSafeValue(fund.fundName, "Unnamed Fund")}${rateLabel}`
+      };
+    });
+  }
+
+  // Returns true when at least one available fund option exists.
+  get hasAvailableFunds() {
+    return this.displayAvailableFunds.length > 0;
+  }
+
+  // Calculates total allocation percentage for Fund Switching rows.
+  get fundSwitchTotal() {
+    return this.calculateAllocationTotal(this.alterationData.fundSwitchRows);
+  }
+
+  // Calculates total allocation percentage for Future Premium Redirection rows.
+  get redirectionTotal() {
+    return this.calculateAllocationTotal(this.alterationData.redirectionRows);
+  }
+
+  // Shows whether Fund Switching allocation totals exactly 100%.
+  get isFundSwitchTotalValid() {
+    return this.fundSwitchTotal === 100;
+  }
+
+  // Shows whether Future Premium Redirection allocation totals exactly 100%.
+  get isRedirectionTotalValid() {
+    return this.redirectionTotal === 100;
+  }
+
+  // CSS class for Fund Switching total validation display.
+  get fundSwitchTotalClass() {
+    return this.isFundSwitchTotalValid ? "uls-positive" : "uls-error-message";
+  }
+
+  // CSS class for Redirection total validation display.
+  get redirectionTotalClass() {
+    return this.isRedirectionTotalValid ? "uls-positive" : "uls-error-message";
+  }
+
+  // Displays the requested monthly premium used by Step 3.
+  get displayAlterationRequestedPremium() {
+    return this.formatCurrency(this.alterationData.requestedMonthlyPremium);
+  }
+
+  // Returns term extension options in a safe dropdown shape.
+  get displayTermExtensionOptions() {
+    if (!Array.isArray(this.termExtensionOptions)) {
+      return [];
+    }
+
+    return this.termExtensionOptions.map((option) => {
+      return {
+        key: `term-${option}`,
+        value: String(option),
+        label: `${option} Years`
+      };
+    });
+  }
+
+  // Returns true when term extension options are available.
+  get hasTermExtensionOptions() {
+    return this.displayTermExtensionOptions.length > 0;
+  }
+
+  // Displays the selected term option safely.
+  get displaySelectedTermExtension() {
+    return this.alterationData.termExtensionYears
+      ? `${this.alterationData.termExtensionYears} Years`
+      : "Not selected";
   }
 
   // Handles changes in the Policy Number input.
@@ -732,6 +871,373 @@ export default class UlsCalculator extends LightningElement {
     }
   }
 
+  // Moves from Step 2 into Step 3: Apply Alterations.
+  async handleApplyAlterations() {
+    // Do not navigate while an Apex/backend request is running.
+    if (this.isLoading) {
+      return;
+    }
+
+    // Clear any previous non-blocking message before entering Step 3.
+    this.clearError();
+
+    // Copy the Step 2 requested monthly premium into Step 3 premium change.
+    this.alterationData = {
+      ...this.alterationData,
+      requestedMonthlyPremium:
+        this.goalData.requestedMonthlyPremium ||
+        this.goalData.finalUavResult?.requestedPremium ||
+        null
+    };
+
+    // Step 3 is now activated.
+    this.currentStep = 3;
+
+    // Load Step 3 reference data for dropdowns.
+    // This includes available funds and term extension options.
+    await this.loadAvailableFunds();
+    await this.loadTermExtensionOptions();
+  }
+
+  // Loads available funds from Apex/backend for Step 3 dropdowns.
+  async loadAvailableFunds() {
+    // Avoid duplicate backend calls if funds are already loaded.
+    if (this.availableFunds.length > 0) {
+      this.ensureDefaultFundsSelected();
+      return;
+    }
+
+    this.startLoading("Loading available funds...");
+
+    try {
+      const response = await getFunds();
+
+      if (this.handleApiSuccess(response)) {
+        const funds = response.data?.funds;
+
+        this.availableFunds = Array.isArray(funds) ? funds : [];
+        this.ensureDefaultFundsSelected();
+        return;
+      }
+
+      this.setApiError(
+        response,
+        "Unable to load available funds. Please try again or contact support."
+      );
+    } catch (error) {
+      this.setUnexpectedError(error);
+    } finally {
+      this.stopLoading();
+    }
+  }
+
+  // Loads valid term extension options from Apex/backend for Step 3.
+  async loadTermExtensionOptions() {
+    // Avoid duplicate backend calls if options are already loaded for this session.
+    if (this.termExtensionOptions.length > 0) {
+      return;
+    }
+
+    // Do not call backend without a policy number.
+    if (!this.policyNumber) {
+      this.errorState = {
+        userMessage:
+          "Policy number is missing. Please retrieve the policy again before applying alterations.",
+        errorCode: "VALIDATION_ERROR",
+        correlationId: null
+      };
+      return;
+    }
+
+    this.startLoading("Loading term extension options...");
+
+    try {
+      const response = await getTermExtensionOptions({
+        policyNumber: this.policyNumber
+      });
+
+      if (this.handleApiSuccess(response)) {
+        const options = response.data?.options;
+
+        this.termExtensionOptions = Array.isArray(options) ? options : [];
+        this.termExtensionOptionsData = response.data || null;
+
+        // Default the dropdown to the first backend option if nothing is selected yet.
+        if (
+          !this.alterationData.termExtensionYears &&
+          this.termExtensionOptions.length > 0
+        ) {
+          this.alterationData = {
+            ...this.alterationData,
+            termExtensionYears: String(this.termExtensionOptions[0])
+          };
+        }
+
+        return;
+      }
+
+      this.setApiError(
+        response,
+        "Unable to load term extension options. Please try again or contact support."
+      );
+    } catch (error) {
+      this.setUnexpectedError(error);
+    } finally {
+      this.stopLoading();
+    }
+  }
+
+  // Creates a new fund allocation row for fund switching or redirection.
+  createFundAllocationRow(prefix) {
+    const defaultFundId =
+      this.availableFunds.length > 0 ? this.availableFunds[0].fundId : "";
+
+    const row = {
+      key: `${prefix}-${this.nextAlterationRowKey}`,
+      fundId: defaultFundId,
+      allocationPercentage: null
+    };
+
+    this.nextAlterationRowKey += 1;
+
+    return row;
+  }
+
+  // Ensures Step 3 fund-based sections have at least one row/default fund.
+  ensureDefaultFundsSelected() {
+    const defaultFundId =
+      this.availableFunds.length > 0 ? this.availableFunds[0].fundId : "";
+
+    if (!defaultFundId) {
+      return;
+    }
+
+    const fundSwitchRows =
+      this.alterationData.fundSwitchRows.length > 0
+        ? this.alterationData.fundSwitchRows
+        : [this.createFundAllocationRow("switch")];
+
+    const redirectionRows =
+      this.alterationData.redirectionRows.length > 0
+        ? this.alterationData.redirectionRows
+        : [this.createFundAllocationRow("redirection")];
+
+    this.alterationData = {
+      ...this.alterationData,
+      aspFundId: this.alterationData.aspFundId || defaultFundId,
+      fundSwitchRows: fundSwitchRows.map((row) => {
+        return {
+          ...row,
+          fundId: row.fundId || defaultFundId
+        };
+      }),
+      redirectionRows: redirectionRows.map((row) => {
+        return {
+          ...row,
+          fundId: row.fundId || defaultFundId
+        };
+      })
+    };
+  }
+
+  // Calculates allocation total for dynamic allocation rows.
+  calculateAllocationTotal(rows) {
+    if (!Array.isArray(rows)) {
+      return 0;
+    }
+
+    return rows.reduce((total, row) => {
+      const numericValue = Number(row.allocationPercentage);
+      return total + (Number.isNaN(numericValue) ? 0 : numericValue);
+    }, 0);
+  }
+
+  // Handles changes to the Step 3 requested monthly premium.
+  handleAlterationRequestedPremiumChange(event) {
+    this.alterationData = {
+      ...this.alterationData,
+      requestedMonthlyPremium: event.target.value
+    };
+
+    this.clearError();
+  }
+
+  // Enables/disables the Fund Switching section.
+  handleFundSwitchToggle(event) {
+    const enabled = event.target.checked;
+
+    this.alterationData = {
+      ...this.alterationData,
+      fundSwitchEnabled: enabled,
+      fundSwitchRows:
+        this.alterationData.fundSwitchRows.length > 0
+          ? this.alterationData.fundSwitchRows
+          : [this.createFundAllocationRow("switch")]
+    };
+
+    this.ensureDefaultFundsSelected();
+  }
+
+  // Adds a Fund Switching allocation row.
+  handleAddFundSwitchRow() {
+    this.alterationData = {
+      ...this.alterationData,
+      fundSwitchRows: [
+        ...this.alterationData.fundSwitchRows,
+        this.createFundAllocationRow("switch")
+      ]
+    };
+  }
+
+  // Removes a Fund Switching allocation row.
+  handleRemoveFundSwitchRow(event) {
+    const rowKey = event.currentTarget.dataset.key;
+
+    this.alterationData = {
+      ...this.alterationData,
+      fundSwitchRows: this.alterationData.fundSwitchRows.filter((row) => {
+        return row.key !== rowKey;
+      })
+    };
+  }
+
+  // Handles selected fund changes in Fund Switching rows.
+  handleFundSwitchFundChange(event) {
+    const rowKey = event.currentTarget.dataset.key;
+    const value = event.target.value;
+
+    this.alterationData = {
+      ...this.alterationData,
+      fundSwitchRows: this.alterationData.fundSwitchRows.map((row) => {
+        return row.key === rowKey ? { ...row, fundId: value } : row;
+      })
+    };
+  }
+
+  // Handles allocation percentage changes in Fund Switching rows.
+  handleFundSwitchAllocationChange(event) {
+    const rowKey = event.currentTarget.dataset.key;
+    const value = event.target.value;
+
+    this.alterationData = {
+      ...this.alterationData,
+      fundSwitchRows: this.alterationData.fundSwitchRows.map((row) => {
+        return row.key === rowKey
+          ? { ...row, allocationPercentage: value }
+          : row;
+      })
+    };
+  }
+
+  // Enables/disables the ASP section.
+  handleAspToggle(event) {
+    this.alterationData = {
+      ...this.alterationData,
+      aspEnabled: event.target.checked
+    };
+
+    this.ensureDefaultFundsSelected();
+  }
+
+  // Handles ASP amount changes.
+  handleAspAmountChange(event) {
+    this.alterationData = {
+      ...this.alterationData,
+      aspAmount: event.target.value
+    };
+  }
+
+  // Handles ASP fund selection.
+  handleAspFundChange(event) {
+    this.alterationData = {
+      ...this.alterationData,
+      aspFundId: event.target.value
+    };
+  }
+
+  // Enables/disables the Future Premium Redirection section.
+  handleRedirectionToggle(event) {
+    const enabled = event.target.checked;
+
+    this.alterationData = {
+      ...this.alterationData,
+      redirectionEnabled: enabled,
+      redirectionRows:
+        this.alterationData.redirectionRows.length > 0
+          ? this.alterationData.redirectionRows
+          : [this.createFundAllocationRow("redirection")]
+    };
+
+    this.ensureDefaultFundsSelected();
+  }
+
+  // Adds a Future Premium Redirection row.
+  handleAddRedirectionRow() {
+    this.alterationData = {
+      ...this.alterationData,
+      redirectionRows: [
+        ...this.alterationData.redirectionRows,
+        this.createFundAllocationRow("redirection")
+      ]
+    };
+  }
+
+  // Removes a Future Premium Redirection row.
+  handleRemoveRedirectionRow(event) {
+    const rowKey = event.currentTarget.dataset.key;
+
+    this.alterationData = {
+      ...this.alterationData,
+      redirectionRows: this.alterationData.redirectionRows.filter((row) => {
+        return row.key !== rowKey;
+      })
+    };
+  }
+
+  // Handles selected fund changes in Future Premium Redirection rows.
+  handleRedirectionFundChange(event) {
+    const rowKey = event.currentTarget.dataset.key;
+    const value = event.target.value;
+
+    this.alterationData = {
+      ...this.alterationData,
+      redirectionRows: this.alterationData.redirectionRows.map((row) => {
+        return row.key === rowKey ? { ...row, fundId: value } : row;
+      })
+    };
+  }
+
+  // Handles allocation percentage changes in Future Premium Redirection rows.
+  handleRedirectionAllocationChange(event) {
+    const rowKey = event.currentTarget.dataset.key;
+    const value = event.target.value;
+
+    this.alterationData = {
+      ...this.alterationData,
+      redirectionRows: this.alterationData.redirectionRows.map((row) => {
+        return row.key === rowKey
+          ? { ...row, allocationPercentage: value }
+          : row;
+      })
+    };
+  }
+
+  // Enables/disables the Increase ULS Term section.
+  handleTermExtensionToggle(event) {
+    this.alterationData = {
+      ...this.alterationData,
+      termExtensionEnabled: event.target.checked
+    };
+  }
+
+  // Handles selected term extension years.
+  handleTermExtensionYearsChange(event) {
+    this.alterationData = {
+      ...this.alterationData,
+      termExtensionYears: event.target.value
+    };
+  }
+
   // Moves to the previous step.
   handleBack() {
     if (this.currentStep > 1) {
@@ -741,9 +1247,9 @@ export default class UlsCalculator extends LightningElement {
 
   // Moves to the next step.
   handleNext() {
-    // Production guard: Step 3+ is not available yet.
-    // Keep placeholder templates in the component, but do not allow navigation into them.
-    if (this.currentStep >= 2) {
+    // Production guard: Step 4+ is not available yet.
+    // Step 3 is now allowed, but later steps remain blocked until approved.
+    if (this.currentStep >= 3) {
       this.errorState = {
         hasError: true,
         errorCode: "STEP_NOT_AVAILABLE",
@@ -752,6 +1258,11 @@ export default class UlsCalculator extends LightningElement {
         correlationId: null,
         supportDetails: null
       };
+      return;
+    }
+
+    // Do not navigate while loading.
+    if (this.isNextDisabled) {
       return;
     }
 
@@ -766,6 +1277,9 @@ export default class UlsCalculator extends LightningElement {
     this.policyNumber = "";
     this.policyData = null;
     this.inflationRateData = null;
+    this.availableFunds = [];
+    this.termExtensionOptions = [];
+    this.termExtensionOptionsData = null;
     this.isLoading = false;
     this.loadingMessage = "";
     this.errorState = null;
@@ -780,6 +1294,20 @@ export default class UlsCalculator extends LightningElement {
       isInflationAdjustedUavStale: false,
       isSuggestedPremiumStale: false,
       isFinalUavStale: false
+    };
+
+    this.alterationData = {
+      regularPremiumEnabled: true,
+      requestedMonthlyPremium: null,
+      fundSwitchEnabled: false,
+      fundSwitchRows: [],
+      aspEnabled: false,
+      aspAmount: null,
+      aspFundId: "",
+      redirectionEnabled: false,
+      redirectionRows: [],
+      termExtensionEnabled: false,
+      termExtensionYears: ""
     };
   }
 

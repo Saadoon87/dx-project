@@ -362,7 +362,7 @@ describe("c-uls-calculator", () => {
     expect(pageText).not.toContain("Raw Apex stack trace");
   });
 
-  it("keeps Apply Alterations disabled because Step 3 is not implemented yet", async () => {
+  it("enables Apply Alterations and opens Step 3 after activation", async () => {
     const element = createComponent();
 
     await moveToStep2WithSuccessfulRetrieve(element);
@@ -373,7 +373,7 @@ describe("c-uls-calculator", () => {
     );
 
     expect(applyAlterationsButton).not.toBeUndefined();
-    expect(applyAlterationsButton.disabled).toBe(true);
+    expect(applyAlterationsButton.disabled).toBe(false);
     expect(element.shadowRoot.textContent).toContain(
       "Goal-Based Target Definition"
     );
