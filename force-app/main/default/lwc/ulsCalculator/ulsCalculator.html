@@ -910,22 +910,17 @@
                         for:item="row"
                       >
                         <div key={row.key} class="uls-allocation-row">
-                          <select
+                          <lightning-combobox
                             class="uls-large-input"
                             data-key={row.key}
+                            variant="label-hidden"
+                            label="Fund"
                             value={row.fundId}
+                            options={displayAvailableFunds}
                             onchange={handleFundSwitchFundChange}
                             disabled={isLoading}
                           >
-                            <template
-                              for:each={displayAvailableFunds}
-                              for:item="fund"
-                            >
-                              <option key={fund.key} value={fund.value}>
-                                {fund.label}
-                              </option>
-                            </template>
-                          </select>
+                          </lightning-combobox>
 
                           <lightning-input
                             class="uls-large-input"
@@ -1033,21 +1028,16 @@
                         >Allocation Target Fund</label
                       >
 
-                      <select
+                      <lightning-combobox
                         class="uls-large-input"
+                        variant="label-hidden"
+                        label="Allocation Target Fund"
                         value={alterationData.aspFundId}
+                        options={displayAvailableFunds}
                         onchange={handleAspFundChange}
                         disabled={isLoading}
                       >
-                        <template
-                          for:each={displayAvailableFunds}
-                          for:item="fund"
-                        >
-                          <option key={fund.key} value={fund.value}>
-                            {fund.label}
-                          </option>
-                        </template>
-                      </select>
+                      </lightning-combobox>
                     </div>
                   </div>
                 </template>
@@ -1084,22 +1074,17 @@
                         for:item="row"
                       >
                         <div key={row.key} class="uls-allocation-row">
-                          <select
+                          <lightning-combobox
                             class="uls-large-input"
                             data-key={row.key}
+                            variant="label-hidden"
+                            label="Redirected Fund"
                             value={row.fundId}
+                            options={displayAvailableFunds}
                             onchange={handleRedirectionFundChange}
                             disabled={isLoading}
                           >
-                            <template
-                              for:each={displayAvailableFunds}
-                              for:item="fund"
-                            >
-                              <option key={fund.key} value={fund.value}>
-                                {fund.label}
-                              </option>
-                            </template>
-                          </select>
+                          </lightning-combobox>
 
                           <lightning-input
                             class="uls-large-input"
@@ -1181,21 +1166,16 @@
                       <label class="uls-goal-label">Add Extension Years</label>
 
                       <template if:true={hasTermExtensionOptions}>
-                        <select
+                        <lightning-combobox
                           class="uls-large-input"
+                          variant="label-hidden"
+                          label="Add Extension Years"
                           value={alterationData.termExtensionYears}
+                          options={displayTermExtensionOptions}
                           onchange={handleTermExtensionYearsChange}
                           disabled={isLoading}
                         >
-                          <template
-                            for:each={displayTermExtensionOptions}
-                            for:item="option"
-                          >
-                            <option key={option.key} value={option.value}>
-                              {option.label}
-                            </option>
-                          </template>
-                        </select>
+                        </lightning-combobox>
                       </template>
 
                       <template if:false={hasTermExtensionOptions}>

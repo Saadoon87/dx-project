@@ -1104,7 +1104,7 @@ export default class UlsCalculator extends LightningElement {
   // Handles selected fund changes in Fund Switching rows.
   handleFundSwitchFundChange(event) {
     const rowKey = event.currentTarget.dataset.key;
-    const value = event.target.value;
+    const value = event.detail?.value || event.target.value;
 
     this.alterationData = {
       ...this.alterationData,
@@ -1151,7 +1151,7 @@ export default class UlsCalculator extends LightningElement {
   handleAspFundChange(event) {
     this.alterationData = {
       ...this.alterationData,
-      aspFundId: event.target.value
+      aspFundId: event.detail?.value || event.target.value
     };
   }
 
@@ -1197,7 +1197,7 @@ export default class UlsCalculator extends LightningElement {
   // Handles selected fund changes in Future Premium Redirection rows.
   handleRedirectionFundChange(event) {
     const rowKey = event.currentTarget.dataset.key;
-    const value = event.target.value;
+    const value = event.detail?.value || event.target.value;
 
     this.alterationData = {
       ...this.alterationData,
@@ -1234,7 +1234,7 @@ export default class UlsCalculator extends LightningElement {
   handleTermExtensionYearsChange(event) {
     this.alterationData = {
       ...this.alterationData,
-      termExtensionYears: event.target.value
+      termExtensionYears: event.detail?.value || event.target.value
     };
   }
 
