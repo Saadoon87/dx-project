@@ -178,24 +178,35 @@ public class UlsMockDataFactory {
     );
   }
   /**
-   * Mock response for GET funds/options.
+   * Mock response for GET available funds.
    */
   public static String fundsSuccessJson() {
     Map<String, Object> fundOne = new Map<String, Object>();
-    fundOne.put('fundId', 'FUND-ACTIVE');
-    fundOne.put('fundCode', 'ACTIVE');
-    fundOne.put('fundName', 'Active Fund');
-    fundOne.put('lowReturnRate', 3.5);
-    fundOne.put('highReturnRate', 7.5);
+    fundOne.put('id', 18);
+    fundOne.put('name', 'Money Market');
+    fundOne.put('lowerRate', 10);
+    fundOne.put('centralRate', 0);
+    fundOne.put('upperRate', 18);
 
     Map<String, Object> fundTwo = new Map<String, Object>();
-    fundTwo.put('fundCode', 'BALANCED');
-    fundTwo.put('nameEn', 'Balanced Fund');
-    fundTwo.put('lowReturnRate', 2.5);
-    fundTwo.put('highReturnRate', 6.0);
+    fundTwo.put('id', 1);
+    fundTwo.put('name', 'Secure');
+    fundTwo.put('lowerRate', 7);
+    fundTwo.put('centralRate', 9);
+    fundTwo.put('upperRate', 13);
+
+    Map<String, Object> fundThree = new Map<String, Object>();
+    fundThree.put('id', 17);
+    fundThree.put('name', 'EGX30 ETF');
+    fundThree.put('lowerRate', null);
+    fundThree.put('centralRate', 9);
+    fundThree.put('upperRate', 18);
 
     Map<String, Object> responseBody = new Map<String, Object>();
-    responseBody.put('funds', new List<Object>{ fundOne, fundTwo });
+    responseBody.put(
+      'investmentFundTypesAndRatesByCurrencyId',
+      new List<Object>{ fundOne, fundTwo, fundThree }
+    );
 
     return JSON.serialize(responseBody);
   }

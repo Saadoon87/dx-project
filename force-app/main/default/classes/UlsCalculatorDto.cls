@@ -304,7 +304,10 @@ public with sharing class UlsCalculatorDto {
    * Raw backend funds response.
    */
   public class BackendFundsResponse {
-    // Backend fund list.
+    // Current backend response root for available funds.
+    public List<BackendFundOption> investmentFundTypesAndRatesByCurrencyId;
+
+    // Older/sandbox response root kept as a safe fallback.
     public List<BackendFundOption> funds;
   }
 
@@ -312,25 +315,40 @@ public with sharing class UlsCalculatorDto {
    * Raw backend fund option.
    */
   public class BackendFundOption {
-    // Backend may send fundCode.
+    // Current backend numeric fund identifier.
+    public Integer id;
+
+    // Current backend fund display name.
+    public String name;
+
+    // Current backend lower return rate.
+    public Decimal lowerRate;
+
+    // Current backend central return rate.
+    public Decimal centralRate;
+
+    // Current backend upper return rate.
+    public Decimal upperRate;
+
+    // Older backend may send fundCode.
     public String fundCode;
 
-    // Backend may also send fundId.
+    // Older backend may also send fundId.
     public String fundId;
 
-    // Backend may send an already-built fund name.
+    // Older backend may send an already-built fund name.
     public String fundName;
 
-    // English display name.
+    // Older English display name.
     public String nameEn;
 
-    // Arabic display name.
+    // Older Arabic display name.
     public String nameAr;
 
-    // Low return rate if returned.
+    // Older low return rate field.
     public Decimal lowReturnRate;
 
-    // High return rate if returned.
+    // Older high return rate field.
     public Decimal highReturnRate;
   }
 
@@ -513,11 +531,23 @@ public with sharing class UlsCalculatorDto {
     @AuraEnabled
     public String fundName { get; set; }
 
-    // Low return rate if returned by backend.
+    // Lower return rate returned by backend.
+    @AuraEnabled
+    public Decimal lowerRate { get; set; }
+
+    // Central return rate returned by backend.
+    @AuraEnabled
+    public Decimal centralRate { get; set; }
+
+    // Upper return rate returned by backend.
+    @AuraEnabled
+    public Decimal upperRate { get; set; }
+
+    // Backward-compatible low return rate field.
     @AuraEnabled
     public Decimal lowReturnRate { get; set; }
 
-    // High return rate if returned by backend.
+    // Backward-compatible high return rate field.
     @AuraEnabled
     public Decimal highReturnRate { get; set; }
   }

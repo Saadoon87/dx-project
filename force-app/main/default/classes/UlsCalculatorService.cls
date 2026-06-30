@@ -34,10 +34,10 @@ public with sharing class UlsCalculatorService {
    */
   private static final String GET_POLICY = '/policy-management/policy/summary/{policyNumber}';
   private static final String GET_INFLATION_RATE = '/api/v1/calculator/inflation-rate';
-  private static final String POST_INFLATION_ADJUSTED_UAV = '/api/v1/calculator/inflation-adjusted-uav';
+  private static final String POST_INFLATION_ADJUSTED_UAV = '/policy-management/calculator/inflation-adjusted-uav';
   private static final String POST_SUGGESTED_PREMIUM = '/api/v1/calculator/suggested-premium';
   private static final String POST_FINAL_UAV = '/api/v1/calculator/final-uav';
-  private static final String GET_FUNDS = '/api/v1/funds';
+  private static final String GET_FUNDS = '/lookups-svc/lookups/investment-funds-and-rates?currencyId=16';
   private static final String GET_TERM_EXTENSION_OPTIONS = '/api/v1/policies/{policyNumber}/term-extension-options';
   private static final String POST_PROJECTION = '/api/v1/calculator/projection';
   private static final String POST_PROJECTION_PDF = '/api/v1/documents/projection-pdf';
@@ -1197,33 +1197,60 @@ public with sharing class UlsCalculatorService {
 
     uiResponse.funds = new List<UlsCalculatorDto.FundOption>();
 
-    if (backendFunds == null || backendFunds.funds == null) {
+    if (backendFunds == null) {
       return uiResponse;
     }
 
-    for (UlsCalculatorDto.BackendFundOption backendFund : backendFunds.funds) {
+    // Current backend response uses investmentFundTypesAndRatesByCurrencyId.
+    // Keep the old funds fallback so older mocks/sandboxes do not break.
+    List<UlsCalculatorDto.BackendFundOption> backendFundOptions = backendFunds.investmentFundTypesAndRatesByCurrencyId !=
+      null
+      ? backendFunds.investmentFundTypesAndRatesByCurrencyId
+      : backendFunds.funds;
+
+    if (backendFundOptions == null) {
+      return uiResponse;
+    }
+
+    for (UlsCalculatorDto.BackendFundOption backendFund : backendFundOptions) {
       if (backendFund == null) {
         continue;
       }
 
       UlsCalculatorDto.FundOption uiFund = new UlsCalculatorDto.FundOption();
 
-      // Prefer fundId if sent, otherwise use fundCode.
-      uiFund.fundId = firstNonBlank(
-        new List<String>{ backendFund.fundId, backendFund.fundCode }
-      );
+      // Current backend sends numeric id.
+      // Older shapes may send fundId or fundCode, so keep those as safe fallbacks.
+      uiFund.fundId = backendFund.id != null
+        ? String.valueOf(backendFund.id)
+        : firstNonBlank(
+            new List<String>{ backendFund.fundId, backendFund.fundCode }
+          );
 
-      // Prefer explicit fundName, then English name, then Arabic name.
+      // Current backend sends name.
+      // Older shapes may send fundName, nameEn, or nameAr.
       uiFund.fundName = firstNonBlank(
         new List<String>{
+          backendFund.name,
           backendFund.fundName,
           backendFund.nameEn,
           backendFund.nameAr
         }
       );
 
-      uiFund.lowReturnRate = backendFund.lowReturnRate;
-      uiFund.highReturnRate = backendFund.highReturnRate;
+      // Current backend sends lowerRate, centralRate, and upperRate.
+      uiFund.lowerRate = backendFund.lowerRate;
+      uiFund.centralRate = backendFund.centralRate;
+      uiFund.upperRate = backendFund.upperRate;
+
+      // Keep existing UI-safe fields populated for backward compatibility.
+      uiFund.lowReturnRate = backendFund.lowerRate != null
+        ? backendFund.lowerRate
+        : backendFund.lowReturnRate;
+
+      uiFund.highReturnRate = backendFund.upperRate != null
+        ? backendFund.upperRate
+        : backendFund.highReturnRate;
 
       uiResponse.funds.add(uiFund);
     }

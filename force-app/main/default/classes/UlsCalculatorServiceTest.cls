@@ -848,29 +848,39 @@ private class UlsCalculatorServiceTest {
     UlsCalculatorDto.FundsResponse fundsResponse = (UlsCalculatorDto.FundsResponse) response.data;
 
     System.Assert.areEqual(
-      2,
+      3,
       fundsResponse.funds.size(),
-      'Two fund options should be mapped.'
+      'Three fund options should be mapped from investmentFundTypesAndRatesByCurrencyId.'
     );
     System.Assert.areEqual(
-      'FUND-ACTIVE',
+      '18',
       fundsResponse.funds[0].fundId,
-      'fundId should be preferred when backend sends it.'
+      'Numeric backend id should be converted to string fundId.'
     );
     System.Assert.areEqual(
-      'Active Fund',
+      'Money Market',
       fundsResponse.funds[0].fundName,
-      'fundName should be mapped.'
+      'Backend name should be mapped to fundName.'
     );
     System.Assert.areEqual(
-      'BALANCED',
-      fundsResponse.funds[1].fundId,
-      'fundCode should be used as fallback fundId.'
+      10,
+      fundsResponse.funds[0].lowerRate,
+      'lowerRate should be mapped.'
     );
     System.Assert.areEqual(
-      'Balanced Fund',
-      fundsResponse.funds[1].fundName,
-      'nameEn should be used as fallback fundName.'
+      0,
+      fundsResponse.funds[0].centralRate,
+      'centralRate should be mapped.'
+    );
+    System.Assert.areEqual(
+      18,
+      fundsResponse.funds[0].upperRate,
+      'upperRate should be mapped.'
+    );
+    System.Assert.areEqual(
+      null,
+      fundsResponse.funds[2].lowerRate,
+      'Null lowerRate should stay null when backend sends null.'
     );
 
     HttpRequest lastRequest = UlsHttpCalloutMock.getLastRequest();
