@@ -1716,8 +1716,9 @@ public with sharing class UlsCalculatorService {
       return 'Please enter a policy number.';
     }
 
-    if (policyNumber.length() > 80) {
-      return 'Policy number is too long.';
+    Pattern numericPolicyPattern = Pattern.compile('^[0-9]{1,10}$');
+    if (!numericPolicyPattern.matcher(policyNumber).matches()) {
+      return 'Please check Policy number format';
     }
 
     return null;

@@ -152,13 +152,24 @@ export default class UlsCalculator extends LightningElement {
     return this.displayBenefits.length > 0;
   }
 
-  // Disables Retrieve while loading or when policy number is blank.
+  // Disables Retrieve while loading, when policy number is blank,
+  // or when policy number is not 1 to 10 digits.
   get isRetrieveDisabled() {
-    return (
-      this.isLoading ||
-      !this.policyNumber ||
-      this.policyNumber.trim().length === 0
-    );
+    // Trim spaces before checking the value.
+    const value = this.policyNumber ? this.policyNumber.trim() : "";
+
+    // Disable while loading.
+    if (this.isLoading) {
+      return true;
+    }
+
+    // Disable if blank.
+    if (value.length === 0) {
+      return true;
+    }
+
+    // Disable if not numbers only from 1 to 10 digits.
+    return !/^[0-9]{1,10}$/.test(value);
   }
 
   // Disables inflation-adjusted calculation until the required input is entered.
@@ -343,15 +354,36 @@ export default class UlsCalculator extends LightningElement {
     );
   }
 
-  // Handles typing in the Policy Number input.
+  // Handles changes in the Policy Number input.
   handlePolicyNumberChange(event) {
-    // Store the latest user-entered value.
-    this.policyNumber = event.target.value;
+    // For lightning-input, event.detail.value is the safest value source.
+    this.policyNumber = event.detail.value || "";
 
-    // Clear old errors when the user starts editing again.
+    // Trim spaces before validation.
+    const value = this.policyNumber.trim();
+
+    // Check if the field is blank.
+    const isBlank = value.length === 0;
+
+    // Check whether the value is numbers only from 1 to 10 digits.
+    const isDigitsOnly = /^[0-9]{1,10}$/.test(value);
+
+    // Show a validation message only when the user entered an invalid value.
+    if (!isBlank && !isDigitsOnly) {
+      event.target.setCustomValidity(
+        "Policy Number must contain numbers only, maximum 10 digits."
+      );
+    } else {
+      event.target.setCustomValidity("");
+    }
+
+    // Display or clear the validation message under the input.
+    event.target.reportValidity();
+
+    // Clear old Apex/backend errors when the user edits the policy number.
     this.clearError();
 
-    // If the user changes the policy number, old policy data should not remain trusted.
+    // Clear old policy data because the policy number changed.
     this.policyData = null;
 
     // Reset Step 2 data because it belongs to the previously retrieved policy.

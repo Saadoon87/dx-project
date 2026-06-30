@@ -88,18 +88,27 @@ function getNativeButtonByText(element, label) {
 function changeLightningInput(input, value) {
   input.value = value;
 
-  // Some component versions call reportValidity on numeric lightning-input.
-  // The Jest base component may not always provide it, so we safely stub it here.
+  // Some component versions call setCustomValidity/reportValidity on lightning-input.
+  // The Jest base component may not always provide them, so we safely stub them here.
+  input.setCustomValidity = jest.fn();
   input.reportValidity = jest.fn();
 
-  input.dispatchEvent(new CustomEvent("change"));
+  // The production component reads event.detail.value from lightning-input.
+  // Therefore the Jest event must include detail.value.
+  input.dispatchEvent(
+    new CustomEvent("change", {
+      detail: {
+        value
+      }
+    })
+  );
 }
 
 async function moveToStep2WithSuccessfulRetrieve(element) {
   retrievePolicy.mockResolvedValue({
     success: true,
     data: {
-      policyNumber: "POL12345",
+      policyNumber: "8000082",
       customerName: "Test Customer",
       lifeInsuredName: "Test Customer",
       lifeInsuredAge: 45,
@@ -132,7 +141,7 @@ async function moveToStep2WithSuccessfulRetrieve(element) {
   });
 
   const policyInput = getLightningInputByName(element, "policyNumber");
-  changeLightningInput(policyInput, "POL12345");
+  changeLightningInput(policyInput, "8000082");
 
   await flushPromises();
 
@@ -180,7 +189,7 @@ describe("c-uls-calculator", () => {
     const element = createComponent();
 
     const policyInput = getLightningInputByName(element, "policyNumber");
-    changeLightningInput(policyInput, "POL12345");
+    changeLightningInput(policyInput, "8000082");
 
     await flushPromises();
 
@@ -197,14 +206,14 @@ describe("c-uls-calculator", () => {
     const pageText = element.shadowRoot.textContent;
 
     expect(retrievePolicy).toHaveBeenCalledWith({
-      policyNumber: "POL12345"
+      policyNumber: "8000082"
     });
 
     expect(pageText).toContain("Goal-Based Target Definition");
     expect(pageText).toContain("Retrieved Customer and Policy Data");
     expect(pageText).toContain("Scenario Analysis");
     expect(pageText).toContain("Test Customer");
-    expect(pageText).toContain("POL12345");
+    expect(pageText).toContain("8000082");
     expect(pageText).toContain("50,000.00");
   });
 
@@ -221,7 +230,7 @@ describe("c-uls-calculator", () => {
     const element = createComponent();
 
     const policyInput = getLightningInputByName(element, "policyNumber");
-    changeLightningInput(policyInput, "POL-NOT-FOUND");
+    changeLightningInput(policyInput, "8000083");
 
     await flushPromises();
 
@@ -277,7 +286,7 @@ describe("c-uls-calculator", () => {
     calculateInflationAdjustedUav.mockResolvedValue({
       success: true,
       data: {
-        policyNumber: "POL12345",
+        policyNumber: "8000082",
         initialUAV: 100000,
         inflationRate: 5,
         remainingYears: 10,
@@ -334,7 +343,7 @@ describe("c-uls-calculator", () => {
     const element = createComponent();
 
     const policyInput = getLightningInputByName(element, "policyNumber");
-    changeLightningInput(policyInput, "POL12345");
+    changeLightningInput(policyInput, "8000082");
 
     await flushPromises();
 

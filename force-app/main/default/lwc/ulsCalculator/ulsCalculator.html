@@ -204,6 +204,8 @@
                     onchange={handlePolicyNumberChange}
                     disabled={isLoading}
                     placeholder="Enter policy number"
+                    pattern="^[0-9]+$"
+                    message-when-pattern-mismatch="Policy Number must contain numbers only."
                   >
                   </lightning-input>
 
